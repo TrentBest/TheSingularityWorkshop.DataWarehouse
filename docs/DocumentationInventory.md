@@ -14,15 +14,15 @@ This inventory follows the Workshop's FSM_COS documentation principles: edify, n
 | View / artifact | Status | Purpose / evidence |
 |---|---|---|
 | README / quick start | Implemented | Product identity, rationale, example, scope, verification path |
-| Public API and type reference | Planned | Per-type purpose, key members, contracts, limitations, source and test links |
+| DataShelf API and operational contract | Implemented | Operation semantics, failure behavior, complexity, tests, concurrency caveat |
 | Class/type diagram | Planned | Show public types and ownership without inventing relationships |
 | Type neighborhood pages | Planned | Target type centered, consumers above, dependencies below |
-| Sequence diagrams | Planned | Allocation, mutable access/dirty marking, read, free, disposal |
-| Lifecycle/state diagrams | Planned | Slot states, generation changes, stale-handle rejection |
+| DataShelf lifecycle sequence | Source-checked | Allocate, mutable access, dirty marking, clean, free, generation change |
+| Lifecycle/state transitions | Source-checked | Alive/dirty/generation changes for the current implementation |
 | Data-flow / memory-layout diagram | Source-checked conceptual view | Current README overview only; not a byte-accurate layout |
 | Use cases | Planned | Fixed-size records, dirty-slot processing, slot reuse |
-| Complexity and allocation analysis | Partial | README states constant-time slot addressing; full operation-by-operation analysis requires source review and measurement |
-| Test traceability | Partial | Existing tests cover core invariants; a requirement-to-test matrix is planned |
+| Complexity and allocation analysis | Partial | DataShelf operations documented; other public types and empirical costs still need coverage |
+| Test traceability | Partial | Core invariants linked from API doc; full requirement-to-test matrix remains planned |
 | Benchmark evidence | Implemented separately | Named workloads and CI artifacts live in the benchmark repository |
 | Deployment diagram | Not applicable | Current library is an in-process .NET component |
 | MicroBundle views | Not applicable | No MicroBundle dependency or contract in this repository |
@@ -40,6 +40,6 @@ This inventory follows the Workshop's FSM_COS documentation principles: edify, n
 
 Use the shared Workshop moniker at the top of primary Markdown documents and the canonical Workshop footer image:
 
-`https://raw.githubusercontent.com/TrentBest/FSM_COS/master/Documentation/Branding/TheSingularityWorkshop.png`
+https://raw.githubusercontent.com/TrentBest/FSM_COS/master/Documentation/Branding/TheSingularityWorkshop.png
 
 Keep diagrams product-specific: DataWarehouse visuals should explain shelves, slots, handles, and lifecycle metadata.
