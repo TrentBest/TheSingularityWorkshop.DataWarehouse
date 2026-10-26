@@ -110,6 +110,8 @@ The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingula
 ## 05 Available documentation and theory
 
 - [Documentation inventory and diagram status](docs/DocumentationInventory.md)
+- [DataShelf API and operational contract](docs/api/DataShelf.md)
+- [DataShelf lifecycle sequence](docs/UML/DataShelf-Lifecycle.md)
 - [Source code](src/TheSingularityWorkshop.DataWarehouse/)
 - [Unit tests](tests/TheSingularityWorkshop.DataWarehouse.Tests/)
 - [Benchmark laboratory](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse)
