@@ -6,33 +6,72 @@
 
 # TheSingularityWorkshop.DataWarehouse
 
+[![Tests](https://github.com/TrentBest/TheSingularityWorkshop.DataWarehouse/actions/workflows/tests.yml/badge.svg?branch=development)](https://github.com/TrentBest/TheSingularityWorkshop.DataWarehouse/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/TrentBest/TheSingularityWorkshop.DataWarehouse/development)](https://github.com/TrentBest/TheSingularityWorkshop.DataWarehouse/commits/development)
+
 **A platform-neutral, page-aligned unmanaged data store designed for direct, predictable access.**
 
-[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-reconstruction%20in%20progress-00A6A6)](#current-scope)
+## 00 Identity
 
-The DataWarehouse is a reconstruction of the original Unity-era memory technology, not the higher-level AEC-facing [SingularityWarehouse](https://github.com/TrentBest/SingularityWarehouse). The original used unsafe raw storage and external life/dirty bitmasks. This implementation preserves those ideas without requiring Unity.
+DataWarehouse reconstructs the low-level memory technology from an earlier Unity-era implementation. Its vocabulary is physical on purpose: a **lake** owns allocation, **shelves** hold fixed-size records, **slots** are bays, and **handles** identify records across allocation lifetimes.
 
-## Why it exists
+This is not the higher-level AEC-facing [SingularityWarehouse](https://github.com/TrentBest/SingularityWarehouse). The two projects occupy different layers and should not be conflated.
 
-General-purpose object graphs and hash lookups are convenient, but can add indirection and per-object overhead to hot paths. DataWarehouse instead places fixed-size unmanaged records in a page-aligned shelf and resolves a handle to a slot by arithmetic:
+## A shelf, at a glance
+
+```mermaid
+flowchart TB
+    Lake["DataLake · aligned allocation"]
+    Warehouse["DataWarehouse · owner"]
+    Shelf["DataShelf<T> · one unmanaged record type"]
+    Slots["Fixed-size slots / bays"]
+    Alive["Alive bitmap"]
+    Dirty["Dirty bitmap"]
+    Handle["DataHandle · shelf + slot + generation"]
+    Warehouse --> Lake
+    Warehouse --> Shelf
+    Shelf --> Slots
+    Shelf --> Alive
+    Shelf --> Dirty
+    Handle -. identifies .-> Slots
+```
+
+*Conceptual architecture view, source-checked against the current public types. It explains ownership and tracking; it is not a memory-layout diagram or a measured performance result.*
+
+## 01 What
+
+DataWarehouse places fixed-size unmanaged records in aligned shelf memory. A handle identifies a shelf, slot, and generation; separate bitmaps track slot liveness and dirty state.
+
+The core address calculation is:
 
 `address = shelfBase + slot × sizeof(T)`
 
-The access path is constant-time in the algorithmic sense: it validates a shelf identifier, slot, and generation, then calculates the record address. Real latency still depends on CPU caches, memory topology, contention, and workload; benchmarks—not the name of the algorithm—must establish practical performance.
+The slot calculation is constant-time in the algorithmic sense. Handle validation and memory access have real costs, and practical latency depends on CPU caches, memory topology, and workload.
 
-## Storage vocabulary
+## 02 Why
 
-- **Data Lake** — the aligned unmanaged allocation boundary.
+General-purpose object graphs and hash lookups are convenient, but may introduce indirection and per-object overhead in hot paths. DataWarehouse explores a more explicit trade-off: fixed-size records, predictable slot addressing, and lifecycle metadata kept outside the record payload.
+
+The goal is not to declare every workload faster. The goal is to make the storage model measurable and to establish where it helps.
+
+## 03 How
+
+- **Data Lake** — aligned unmanaged allocation boundary.
 - **DataWarehouse** — owns the lake and creates shelves.
 - **Data Shelf** — page-aligned storage for one unmanaged record type.
-- **Slot / bay** — one fixed-size record position inside a shelf.
-- **Alive tracker** — an external bitmap indicating which slots are allocated.
-- **Dirty tracker** — an external bitmap indicating which live slots have changed or need initialization/processing.
-- **Data handle** — shelf identity + slot index + generation, allowing O(1) validation and stale-handle rejection.
+- **Slot / bay** — one fixed-size record position.
+- **Alive tracker** — external bitmap for allocated slots.
+- **Dirty tracker** — external bitmap for changed or pending slots.
+- **Data handle** — shelf identity + slot index + generation; supports constant-time validation and stale-handle rejection.
 
-## See it in a minute
+Current implementation includes aligned allocation, free-stack allocation/reclamation, alive and dirty bitmaps, generation-checked handles, dirty-slot enumeration into caller-provided memory, deterministic disposal, and unit tests.
+
+It does **not** currently promise thread-safe concurrent mutation, variable-size allocation, persistence, serialization, compaction, GPU interop, or general-purpose object-database behavior.
+
+## 04 See it in a minute
+
+Requires the .NET 8 SDK.
 
 ```csharp
 using TheSingularityWorkshop.DataWarehouse;
@@ -60,38 +99,24 @@ agents.MarkClean(handle); // Acknowledge processing.
 agents.TryFree(handle);   // Reclaims the slot; old handles become invalid.
 ```
 
-## Current scope
-
-The initial implementation includes:
-- aligned unmanaged shelf allocation with configurable power-of-two page alignment;
-- fixed-size unmanaged records and O(1) slot addressing;
-- free-stack allocation and reclamation;
-- separate alive and dirty bitmaps stored outside record memory;
-- generation-checked handles to reject stale or cross-shelf access;
-- dirty-slot enumeration into caller-provided memory;
-- deterministic disposal and unit tests for core invariants.
-
-This is a deliberately small foundation. It does **not** yet claim thread-safe concurrent mutation, typed variable-size allocation, persistence, serialization, compaction, GPU interop, or a general-purpose object database. Those should be added only when requirements and benchmark evidence justify them.
-
-## Build and test
-
-Requires the .NET 8 SDK.
+Run the tests:
 
 ```sh
 dotnet test tests/TheSingularityWorkshop.DataWarehouse.Tests/TheSingularityWorkshop.DataWarehouse.Tests.csproj -c Release
 ```
 
-Run the separate [DataWarehouse benchmark suite](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse) with the library repository checked out beside it.
+The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse) measures named access and lifecycle workloads. Check its reports before drawing performance conclusions.
 
-## Design boundary
+## 05 Available documentation and theory
 
-This repository owns low-level memory layout, slot lifecycle, and direct access. It does not absorb the AEC-facing responsibilities of SingularityWarehouse, nor does it require FSM_COS, MicroBundleDomain, Ontology, Unity, or any UI framework.
+- [Documentation inventory and diagram status](docs/DocumentationInventory.md)
+- [Source code](src/TheSingularityWorkshop.DataWarehouse/)
+- [Unit tests](tests/TheSingularityWorkshop.DataWarehouse.Tests/)
+- [Benchmark laboratory](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse)
+- [SingularityWarehouse — higher-level AEC data fabric](https://github.com/TrentBest/SingularityWarehouse)
 
-## Further reading
+## Design boundary and verification
 
-- [SingularityWarehouse — the higher-level AEC data fabric](https://github.com/TrentBest/SingularityWarehouse)
-- [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse)
+This repository owns low-level memory layout, slot lifecycle, and direct access. It does not require Unity, FSM_COS, MicroBundleDomain, Ontology, or a UI framework. Complexity statements describe algorithmic structure, not guaranteed wall-clock speed; benchmark claims must name their workload and environment.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/TrentBest/TheSingularityWorkshop.Visualize/development/docs/assets/Avatar.jpg" alt="The Singularity Workshop avatar" width="96" />
-</p>
+<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_COS/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop avatar" width="200" /></p>
