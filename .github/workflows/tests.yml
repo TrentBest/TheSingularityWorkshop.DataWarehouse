@@ -1,0 +1,40 @@
+name: DataWarehouse Tests
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [master, development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore tests/TheSingularityWorkshop.DataWarehouse.Tests/TheSingularityWorkshop.DataWarehouse.Tests.csproj
+
+      - name: Build
+        run: dotnet build tests/TheSingularityWorkshop.DataWarehouse.Tests/TheSingularityWorkshop.DataWarehouse.Tests.csproj -c Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/TheSingularityWorkshop.DataWarehouse.Tests/TheSingularityWorkshop.DataWarehouse.Tests.csproj -c Release --no-build --logger "trx;LogFileName=datawarehouse-tests.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: datawarehouse-test-results
+          path: '**/datawarehouse-tests.trx'
+          if-no-files-found: warn
