@@ -44,7 +44,7 @@ struct AgentState
     public float Y;
 }
 
-using var warehouse = new DataWarehouse(pageSize: 4096);
+using var warehouse = new DataWarehouse(defaultPageSize: 4096);
 var agents = warehouse.CreateShelf<AgentState>(capacity: 100_000);
 
 if (!agents.TryAllocate(out var handle))
