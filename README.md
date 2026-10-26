@@ -16,28 +16,17 @@
 
 DataWarehouse reconstructs the low-level memory technology from an earlier Unity-era implementation. Its vocabulary is physical on purpose: a **lake** owns allocation, **shelves** hold fixed-size records, **slots** are bays, and **handles** identify records across allocation lifetimes.
 
-This is not the higher-level AEC-facing [SingularityWarehouse](https://github.com/TrentBest/SingularityWarehouse). The two projects occupy different layers and should not be conflated.
+This is not the higher-level AEC-facing [SingularityWarehouse](https://github.com/TrentBest/SingularityWarehouse). SingularityWarehouse explores a public-facing data fabric across tools and domains; DataWarehouse is the lower-level memory substrate. The projects can complement one another, but they have different responsibilities and performance goals.
 
-## A shelf, at a glance
+## A visual tour
 
-```mermaid
-flowchart TB
-    Lake["DataLake · aligned allocation"]
-    Warehouse["DataWarehouse · owner"]
-    Shelf["DataShelf<T> · one unmanaged record type"]
-    Slots["Fixed-size slots / bays"]
-    Alive["Alive bitmap"]
-    Dirty["Dirty bitmap"]
-    Handle["DataHandle · shelf + slot + generation"]
-    Warehouse --> Lake
-    Warehouse --> Shelf
-    Shelf --> Slots
-    Shelf --> Alive
-    Shelf --> Dirty
-    Handle -. identifies .-> Slots
-```
+The SingularityWarehouse project established a strong visual narrative: big ideas made tangible, clear boundaries, and visuals that help the reader understand the system before diving into code. This repository carries that visual ambition forward with **new, product-specific technical illustrations**. The earlier visuals explain information ecosystems, BIM workflows, brokered capabilities, and business value; these visuals explain allocation ownership, fixed-size records, side-band tracking, and handle lifetime.
 
-*Conceptual architecture view, source-checked against the current public types. It explains ownership and tracking; it is not a memory-layout diagram or a measured performance result.*
+<p align="center">
+  <img src="docs/assets/DataWarehouse-Architecture.svg" alt="DataWarehouse ownership path from warehouse and aligned lake allocation through typed shelves to fixed-size slots, with alive, dirty, and generation tracking" width="100%" />
+</p>
+
+*Conceptual, source-checked architecture view. It is not a byte-accurate memory-layout diagram or a measured performance result.*
 
 ## 01 What
 
@@ -66,6 +55,12 @@ The goal is not to declare every workload faster. The goal is to make the storag
 - **Data handle** — shelf identity + slot index + generation; supports constant-time validation and stale-handle rejection.
 
 Current implementation includes aligned allocation, free-stack allocation/reclamation, alive and dirty bitmaps, generation-checked handles, dirty-slot enumeration into caller-provided memory, deterministic disposal, and unit tests.
+
+<p align="center">
+  <img src="docs/assets/DataWarehouse-Handle-Lifecycle.svg" alt="DataWarehouse handle lifecycle from allocation through mutation and cleaning to freeing and generation-advancing slot reuse" width="100%" />
+</p>
+
+*Source-checked lifecycle summary. The detailed sequence and caveats live in [DataShelf lifecycle](docs/UML/DataShelf-Lifecycle.md).*
 
 It does **not** currently promise thread-safe concurrent mutation, variable-size allocation, persistence, serialization, compaction, GPU interop, or general-purpose object-database behavior.
 
@@ -112,6 +107,7 @@ The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingula
 - [Documentation inventory and diagram status](docs/DocumentationInventory.md)
 - [DataShelf API and operational contract](docs/api/DataShelf.md)
 - [DataShelf lifecycle sequence](docs/UML/DataShelf-Lifecycle.md)
+- [Visual assets](docs/assets/)
 - [Source code](src/TheSingularityWorkshop.DataWarehouse/)
 - [Unit tests](tests/TheSingularityWorkshop.DataWarehouse.Tests/)
 - [Benchmark laboratory](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse)
