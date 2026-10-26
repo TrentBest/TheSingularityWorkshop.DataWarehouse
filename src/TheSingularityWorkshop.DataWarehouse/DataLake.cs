@@ -27,7 +27,7 @@ public sealed unsafe class DataLake : IDisposable
         var remainder = byteCount % alignment;
         var allocationSize = remainder == 0 ? byteCount : checked(byteCount + alignment - remainder);
         var pointer = NativeMemory.AlignedAlloc(allocationSize, alignment);
-        if (pointer is null) throw new OutOfMemoryException($"Unable to allocate {allocationSize} aligned bytes.");
+        if (pointer == null) throw new OutOfMemoryException($"Unable to allocate {allocationSize} aligned bytes.");
         NativeMemory.Clear(pointer, allocationSize);
         Interlocked.Add(ref _allocatedBytes, checked((long)allocationSize));
         return pointer;
