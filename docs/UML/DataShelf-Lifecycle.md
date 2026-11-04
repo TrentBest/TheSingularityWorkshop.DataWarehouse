@@ -60,4 +60,4 @@ sequenceDiagram
 - **Verification:** compare each operation against the source and tests before changing the implementation.
 - **Performance:** this is an explanatory sequence, not benchmark evidence.
 
-<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_COS/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop avatar" width="200" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop avatar" width="200" /></p>
