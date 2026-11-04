@@ -16,7 +16,7 @@
 
 DataWarehouse reconstructs the low-level memory technology from an earlier Unity-era implementation. Its vocabulary is physical on purpose: a **lake** owns allocation, **shelves** hold fixed-size records, **slots** are bays, and **handles** identify records across allocation lifetimes.
 
-This is not the higher-level AEC-facing [SingularityWarehouse](https://github.com/TrentBest/SingularityWarehouse). SingularityWarehouse explores a public-facing data fabric across tools and domains; DataWarehouse is the lower-level memory substrate. The projects can complement one another, but they have different responsibilities and performance goals.
+DataWarehouse is an independent Workshop library with a deliberately narrow responsibility: predictable, fixed-record memory storage. Its public contract is defined by this repository's implementation, tests, and documentation.
 
 ## A visual tour
 
