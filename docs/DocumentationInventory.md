@@ -1,6 +1,6 @@
 # Documentation Inventory — DataWarehouse
 
-This inventory follows the Workshop's FSM_COS documentation principles: edify, not mystify; explain the user problem, design rationale, operational use, limits, and how claims can be verified.
+This inventory follows the Workshop documentation standard: edify, not mystify; explain the user problem, design rationale, operational use, limits, and how claims can be verified.
 
 ## Scope and evidence labels
 
@@ -32,9 +32,7 @@ This inventory follows the Workshop's FSM_COS documentation principles: edify, n
 
 ## Visual provenance
 
-The SingularityWarehouse repository's existing artwork communicates the higher-level data-fabric story: cross-application information, BIM, brokered capabilities, security, and business value. Those assets are not copied verbatim because their subject and abstractions differ from this low-level library. Their visual lesson—strong hierarchy, restrained technical labels, and a coherent cinematic palette—informs the new DataWarehouse-specific SVG illustrations.
-
-The new illustrations are authored as static SVG assets under `docs/assets/`. They are not interactive, benchmark output, or automatically generated. Update them when the source contract changes.
+The illustrations are authored specifically for DataWarehouse under `docs/assets/`. They are static SVG assets, not interactive, benchmark output, or automatically generated. Update them when the source contract changes.
 
 ## Required accuracy rules
 
@@ -48,6 +46,6 @@ The new illustrations are authored as static SVG assets under `docs/assets/`. Th
 
 Use the shared Workshop moniker at the top of primary Markdown documents and the canonical Workshop footer image:
 
-https://raw.githubusercontent.com/TrentBest/FSM_COS/master/Documentation/Branding/TheSingularityWorkshop.png
+https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png
 
 Keep diagrams product-specific: DataWarehouse visuals should explain shelves, slots, handles, and lifecycle metadata.
