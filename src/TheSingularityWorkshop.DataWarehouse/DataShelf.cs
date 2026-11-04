@@ -48,18 +48,25 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         var requestedBytes = checked((nuint)capacity * (nuint)sizeof(T));
         var remainder = requestedBytes % (nuint)pageSize;
         _allocationSize = remainder == 0 ? requestedBytes : checked(requestedBytes + (nuint)pageSize - remainder);
-        _baseAddress = lake.AllocateAligned(requestedBytes, (nuint)pageSize);
 
+        // Allocate all managed metadata before acquiring native memory. If any managed
+        // allocation fails, construction exits without leaving an unmanaged allocation behind.
         _freeSlots = new int[capacity];
         _generations = new int[capacity];
-        _alive = new ulong[(capacity + 63) / 64];
-        _dirty = new ulong[(capacity + 63) / 64];
+        var bitmapLength = checked((int)(((long)capacity + 63) / 64));
+        _alive = new ulong[bitmapLength];
+        _dirty = new ulong[bitmapLength];
+
         for (var i = 0; i < capacity; i++)
         {
             _freeSlots[i] = capacity - 1 - i;
             _generations[i] = 1;
         }
         _freeCount = capacity;
+
+        // This is the final potentially-failing acquisition in construction. No managed
+        // allocations occur after it, so successful allocation cannot be stranded by setup.
+        _baseAddress = lake.AllocateAligned(requestedBytes, (nuint)pageSize);
     }
 
     public bool TryAllocate(out DataHandle handle)
