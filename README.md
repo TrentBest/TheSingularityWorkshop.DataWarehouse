@@ -20,7 +20,7 @@ This is not the higher-level AEC-facing [SingularityWarehouse](https://github.co
 
 ## A visual tour
 
-The SingularityWarehouse project established a strong visual narrative: big ideas made tangible, clear boundaries, and visuals that help the reader understand the system before diving into code. This repository carries that visual ambition forward with **new, product-specific technical illustrations**. The earlier visuals explain information ecosystems, BIM workflows, brokered capabilities, and business value; these visuals explain allocation ownership, fixed-size records, side-band tracking, and handle lifetime.
+The diagrams below make allocation ownership, fixed-size records, side-band tracking, and handle lifetime visible before diving into implementation details.
 
 <p align="center">
   <img src="docs/assets/DataWarehouse-Architecture.svg" alt="DataWarehouse ownership path from warehouse and aligned lake allocation through typed shelves to fixed-size slots, with alive, dirty, and generation tracking" width="100%" />
@@ -111,10 +111,9 @@ The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingula
 - [Source code](src/TheSingularityWorkshop.DataWarehouse/)
 - [Unit tests](tests/TheSingularityWorkshop.DataWarehouse.Tests/)
 - [Benchmark laboratory](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse)
-- [SingularityWarehouse — higher-level AEC data fabric](https://github.com/TrentBest/SingularityWarehouse)
 
 ## Design boundary and verification
 
 This repository owns low-level memory layout, slot lifecycle, and direct access. It does not require Unity, FSM_COS, MicroBundleDomain, Ontology, or a UI framework. Complexity statements describe algorithmic structure, not guaranteed wall-clock speed; benchmark claims must name their workload and environment.
 
-<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_COS/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop avatar" width="200" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop avatar" width="200" /></p>
