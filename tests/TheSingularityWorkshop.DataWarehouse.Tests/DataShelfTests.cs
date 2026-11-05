@@ -250,5 +250,11 @@ public sealed class DataShelfTests
         Assert.Equal(0, warehouse.Lake.AllocatedBytes);
     }
 
-    private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)\n    {\n        shelf.GetRef(handle).Id = value;\n        return shelf.Read(handle).Id;\n    }\n\n    private static long ReadValue(DataShelf<Record> shelf, DataHandle handle) => shelf.Read(handle).Id;
+    private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)
+    {
+        shelf.GetRef(handle).Id = value;
+        return shelf.Read(handle).Id;
+    }
+
+    private static long ReadValue(DataShelf<Record> shelf, DataHandle handle) => shelf.Read(handle).Id;
 }
