@@ -19,6 +19,8 @@ DataShelf<T> stores a fixed capacity of unmanaged records in page-aligned native
 
 The bitmaps are external to the stored T records. The shelf does not allocate a managed object for every record.
 
+DataWarehouse is deliberately security-agnostic. It stores records and maintains storage metadata; it does not authenticate callers, authorize access, interpret identities or permissions, or load security MicroBundles. **FSM_COS is the composition point that brings security MicroBundles into the runtime.** Those higher-level components and the warehouse/access abstractions apply security policy and may use dedicated shelves for security-related data. DataWarehouse simply provides the same storage primitives for those shelves as it does for application data.
+
 ## 02 Why the contract is explicit
 
 The direct access path avoids a per-record dictionary lookup. In exchange, capacity is fixed when the shelf is created, T must be unmanaged, and callers must respect handle validity and disposal lifetime. GetRef is mutable access and marks the record dirty before returning the reference; Read does not mark it dirty.
@@ -43,7 +45,7 @@ The direct access path avoids a per-record dictionary lookup. In exchange, capac
 - CopyDirtySlots is not constant-time. It scans bitmap words; a small destination can stop the scan early.
 - Handle validation is constant-time, but not free: it checks multiple fields and reads metadata.
 - Page alignment is an address guarantee, not a guarantee that every record or every access is cache-line aligned.
-- Generation values wrap from int.MaxValue to 1. This is a finite generation space; extremely old stale handles could theoretically collide after enough reuse cycles.
+- A slot whose generation reaches int.MaxValue is permanently retired instead of wrapping. This prevents generation rollover from making an ancient stale handle valid again.
 
 ## 04 State and failure behavior
 
@@ -73,6 +75,7 @@ This contract does not claim lock-free or thread-safe shared-shelf access. Highe
 ### Native-memory ownership and disposal
 
 - `DataShelf<T>.Dispose()` releases the shelf's native allocation exactly once. `DataWarehouse.Dispose()` disposes its registered shelves before disposing the `DataLake` allocation service.
+- Security policy is not enforced by DataWarehouse. FSM_COS composes the relevant security MicroBundles and higher-level access abstractions; callers must not mistake a valid DataHandle for an authorization decision.
 - `DataLake.Dispose()` marks the allocation service as closed to new allocations; it does not independently enumerate or release outstanding shelf allocations. The warehouse/shelf ownership path is responsible for release. Do not dispose `DataWarehouse.Lake` directly while shelves are active.
 - `BaseAddress` remains publicly exposed in this version for diagnostics/low-level inspection. Because the property returns a raw address, the type system cannot prevent stale-pointer use; this surface is tracked for an explicit API decision rather than silently treated as safe.
 
