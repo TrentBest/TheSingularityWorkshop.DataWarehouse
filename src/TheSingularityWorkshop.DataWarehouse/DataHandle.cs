@@ -10,5 +10,18 @@ public readonly record struct DataHandle(int ShelfId, int Slot, int Generation)
 internal static class ShelfIdentity
 {
     private static int _next;
-    public static int Next() => Interlocked.Increment(ref _next);
+
+    public static int Next()
+    {
+        while (true)
+        {
+            var current = Volatile.Read(ref _next);
+            if (current == int.MaxValue)
+                throw new InvalidOperationException("The data-shelf identity space is exhausted.");
+
+            var next = current + 1;
+            if (Interlocked.CompareExchange(ref _next, next, current) == current)
+                return next;
+        }
+    }
 }
