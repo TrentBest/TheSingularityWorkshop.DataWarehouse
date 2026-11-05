@@ -130,8 +130,13 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         ClearBit(_alive, slot);
         if (GetBit(_dirty, slot)) { ClearBit(_dirty, slot); DirtyCount--; }
         AliveCount--;
-        _generations[slot] = _generations[slot] == int.MaxValue ? 1 : _generations[slot] + 1;
-        _freeSlots[_freeCount++] = slot;
+        // Never wrap a generation: an exhausted slot is retired permanently so an ancient
+        // handle can never become valid again through an ABA-style generation collision.
+        if (_generations[slot] != int.MaxValue)
+        {
+            _generations[slot]++;
+            _freeSlots[_freeCount++] = slot;
+        }
         return true;
     }
 
