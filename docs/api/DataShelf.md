@@ -15,6 +15,7 @@ DataShelf<T> stores a fixed capacity of unmanaged records in page-aligned native
 - Separate alive and dirty bitmaps, each using one bit per slot.
 - Alive and dirty counters.
 - The shelf identity used to reject handles from other shelves.
+- A public `BaseAddress` diagnostic property currently exposes the allocation address as `nint`; this is an unsafe escape hatch, not a supported record-access API. Never dereference it directly, retain it beyond shelf lifetime, or use it to bypass handle validation.
 
 The bitmaps are external to the stored T records. The shelf does not allocate a managed object for every record.
 
@@ -54,6 +55,9 @@ The direct access path avoids a per-record dictionary lookup. In exchange, capac
 - Reuse increments the slot generation, so the old handle no longer validates.
 - GetRef marks a slot dirty when the ref is requested. The shelf cannot observe subsequent writes through the returned ref; it marks before exposure.
 - Shelf operations are not designed as a thread-safe concurrent mutation API. Do not race access, allocation, freeing, dirty tracking, or disposal without external synchronization.
+- `DataShelf<T>.Dispose()` releases the shelf's native allocation exactly once. `DataWarehouse.Dispose()` disposes its registered shelves before disposing the `DataLake` allocation service.
+- `DataLake.Dispose()` marks the allocation service as closed to new allocations; it does not independently enumerate or release outstanding shelf allocations. The warehouse/shelf ownership path is responsible for release. Do not dispose `DataWarehouse.Lake` directly while shelves are active.
+- `BaseAddress` remains publicly exposed in this version for diagnostics/low-level inspection. Because the property returns a raw address, the type system cannot prevent stale-pointer use; this surface is tracked for an explicit API decision rather than silently treated as safe.
 
 ## 05 Verification
 
