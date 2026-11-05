@@ -1,4 +1,4 @@
-<p align="center"><a href="https://github.com/TrentBest/TheSingularityWorkshop.Visualize"><img src="https://raw.githubusercontent.com/TrentBest/TheSingularityWorkshop.Visualize/development/docs/assets/moniker.svg" alt="The Singularity Workshop" width="720" /></a></p>
+ <p align="center"><a href="https://github.com/TrentBest/TheSingularityWorkshop.Visualize"><img src="https://raw.githubusercontent.com/TrentBest/TheSingularityWorkshop.Visualize/development/docs/assets/moniker.svg" alt="The Singularity Workshop" width="720" /></a></p>
 
 # DataShelf<T> — API and operational contract
 
@@ -55,7 +55,23 @@ The direct access path avoids a per-record dictionary lookup. In exchange, capac
 - TryFree returns false when the handle is not currently alive.
 - Reuse increments the slot generation, so the old handle no longer validates.
 - GetRef marks a slot dirty when the ref is requested. The shelf cannot observe subsequent writes through the returned ref; it marks before exposure.
-- Shelf operations are not designed as a thread-safe concurrent mutation API. Do not race access, allocation, freeing, dirty tracking, or disposal without external synchronization.
+
+### Concurrency and worker ownership
+
+DataShelf<T> is a page-aligned storage/metadata unit, not a synchronized work queue. Its allocator stack, generations, bitmaps, and counters are mutable and are not protected by internal locks or atomics.
+
+The performance-first parallelism model is **independent shelf ownership**:
+
+- Create separate shelves for independently processed pages/regions and assign each shelf to one worker or owner for the duration of its access.
+- Different shelves may be processed in parallel; this keeps synchronization out of the per-record hot path.
+- Do not concurrently allocate, free, mutate, or inspect mutable tracking state on the same shelf from multiple workers unless the caller provides external synchronization.
+- A read-only phase may be shared only when the caller guarantees that no worker mutates, frees, or disposes the shelf or its records during that phase.
+- A worker must stop using all refs and addresses obtained from a shelf before that shelf is freed or disposed. A returned ref can outlive the method that produced it, so an internal method-level lock would not make disposal safe.
+
+This contract does not claim lock-free or thread-safe shared-shelf access. Higher-level tools must preserve page/shelf ownership when scheduling work; if they need shared mutation, they must coordinate it above DataWarehouse rather than silently adding synchronization to this core.
+
+### Native-memory ownership and disposal
+
 - `DataShelf<T>.Dispose()` releases the shelf's native allocation exactly once. `DataWarehouse.Dispose()` disposes its registered shelves before disposing the `DataLake` allocation service.
 - `DataLake.Dispose()` marks the allocation service as closed to new allocations; it does not independently enumerate or release outstanding shelf allocations. The warehouse/shelf ownership path is responsible for release. Do not dispose `DataWarehouse.Lake` directly while shelves are active.
 - `BaseAddress` remains publicly exposed in this version for diagnostics/low-level inspection. Because the property returns a raw address, the type system cannot prevent stale-pointer use; this surface is tracked for an explicit API decision rather than silently treated as safe.
@@ -66,4 +82,4 @@ Current unit-test coverage includes page alignment and extent rounding, invalid 
 
 Performance comparisons live in the [benchmark repository](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse). Do not infer measured speed from the complexity table.
 
-<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop avatar" width="200" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop" width="200" /></p>
