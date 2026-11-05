@@ -214,5 +214,41 @@ public sealed class DataShelfTests
         Assert.Equal(0, (long)shelf.BaseAddress % shelf.PageSize);
     }
 
-    private static long ReadValue(DataShelf<Record> shelf, DataHandle handle) => shelf.Read(handle).Id;
+
+    [Fact]
+    public void GenerationExhaustion_RetiresSlotInsteadOfRevalidatingOldHandles()
+    {
+        using var warehouse = new DataWarehouse();
+        using var shelf = warehouse.CreateShelf<Record>(1);
+        Assert.True(shelf.TryAllocate(out var handle));
+
+        var generationsField = typeof(DataShelf<Record>).GetField(
+            "_generations",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var generations = (int[])generationsField.GetValue(shelf)!;
+        generations[handle.Slot] = int.MaxValue;
+
+        var exhaustedHandle = handle with { Generation = int.MaxValue };
+        Assert.True(shelf.TryFree(exhaustedHandle));
+        Assert.False(shelf.IsAlive(exhaustedHandle));
+        Assert.False(shelf.TryAllocate(out _));
+    }
+
+    [Fact]
+    public void LakeDispose_PreventsNewAllocationsButExistingShelfCanReleaseMemory()
+    {
+        using var warehouse = new DataWarehouse();
+        var shelf = warehouse.CreateShelf<Record>(2);
+        Assert.True(shelf.TryAllocate(out var handle));
+
+        warehouse.Lake.Dispose();
+
+        Assert.Equal(42, SetAndRead(shelf, handle, 42));
+        Assert.Throws<ObjectDisposedException>(() => warehouse.CreateShelf<Record>(1));
+
+        shelf.Dispose();
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+    }
+
+    private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)\n    {\n        shelf.GetRef(handle).Id = value;\n        return shelf.Read(handle).Id;\n    }\n\n    private static long ReadValue(DataShelf<Record> shelf, DataHandle handle) => shelf.Read(handle).Id;
 }
