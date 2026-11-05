@@ -49,7 +49,7 @@ The direct access path avoids a per-record dictionary lookup. In exchange, capac
 
 - Capacity must be positive.
 - Page size must be a power of two and at least 64 bytes. It is the requested allocation-alignment and extent-rounding unit; it is not a promise that the value equals the operating system's hardware page size.
-- If `sizeof(T)` exceeds the configured page size, the allocation extent is rounded to a whole multiple of that element extent. A record is never split or truncated to fit a logical page.
+- If `sizeof(T)` exceeds the configured page size, an individual element may span multiple page-size units. The total allocation extent is still rounded to a multiple of the configured page size; records are not split or truncated.
 - Allocation exhaustion returns false and a default handle.
 - GetRef, Read, IsDirty, and MarkClean throw InvalidOperationException for invalid, stale, foreign, or non-live handles (except disposed access may throw ObjectDisposedException).
 - TryFree returns false when the handle is not currently alive.
