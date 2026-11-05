@@ -18,6 +18,12 @@ public sealed class DataShelfTests
         public byte Value;
     }
 
+    [StructLayout(LayoutKind.Sequential, Size = 5000)]
+    private struct NonPageMultipleLargeRecord
+    {
+        public byte Value;
+    }
+
     [Fact]
     public void ShelfBaseAddress_IsPageAligned()
     {
@@ -185,7 +191,7 @@ public sealed class DataShelfTests
     }
 
     [Fact]
-    public void ElementLargerThanPageSize_RoundsToMultipleOfElementExtent()
+    public void ElementLargerThanPageSize_RoundsAllocationExtentToPageMultiple()
     {
         using var warehouse = new DataWarehouse(4096);
         using var shelf = warehouse.CreateShelf<LargeRecord>(1);
@@ -193,6 +199,18 @@ public sealed class DataShelfTests
         Assert.Equal(8192, shelf.ElementSize);
         Assert.Equal(8192, shelf.AllocatedBytes);
         Assert.Equal(8192, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(0, (long)shelf.BaseAddress % shelf.PageSize);
+    }
+
+    [Fact]
+    public void MultipleLargeElements_RoundTotalExtentToPageMultiple()
+    {
+        using var warehouse = new DataWarehouse(4096);
+        using var shelf = warehouse.CreateShelf<NonPageMultipleLargeRecord>(2);
+
+        Assert.Equal(5000, shelf.ElementSize);
+        Assert.Equal(12288, shelf.AllocatedBytes);
+        Assert.Equal(12288, warehouse.Lake.AllocatedBytes);
         Assert.Equal(0, (long)shelf.BaseAddress % shelf.PageSize);
     }
 
