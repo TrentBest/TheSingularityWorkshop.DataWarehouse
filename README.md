@@ -10,6 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/TrentBest/TheSingularityWorkshop.DataWarehouse/development)](https://github.com/TrentBest/TheSingularityWorkshop.DataWarehouse/commits/development)
 
+[![Sith Policy](assets/sith-policy.svg)](https://github.com/TrentBest/TheSingularityWorkshop.DataWarehouse/actions/workflows/sith-policy.yml)
 **A platform-neutral, page-aligned unmanaged data store designed for direct, predictable access.**
 
 ## 00 Identity
