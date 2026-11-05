@@ -48,7 +48,8 @@ The direct access path avoids a per-record dictionary lookup. In exchange, capac
 ## 04 State and failure behavior
 
 - Capacity must be positive.
-- Page size must be a power of two and at least 64 bytes.
+- Page size must be a power of two and at least 64 bytes. It is the requested allocation-alignment and extent-rounding unit; it is not a promise that the value equals the operating system's hardware page size.
+- If `sizeof(T)` exceeds the configured page size, the allocation extent is rounded to a whole multiple of that element extent. A record is never split or truncated to fit a logical page.
 - Allocation exhaustion returns false and a default handle.
 - GetRef, Read, IsDirty, and MarkClean throw InvalidOperationException for invalid, stale, foreign, or non-live handles (except disposed access may throw ObjectDisposedException).
 - TryFree returns false when the handle is not currently alive.
@@ -61,7 +62,7 @@ The direct access path avoids a per-record dictionary lookup. In exchange, capac
 
 ## 05 Verification
 
-Current unit-test coverage includes page alignment, allocation/liveness/dirty state, direct read/write, clean/free, stale generation rejection, capacity exhaustion, cross-shelf rejection, and dirty-slot copying. See [DataShelfTests.cs](../../tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs).
+Current unit-test coverage includes page alignment and extent rounding, invalid page-size rejection, records larger than the configured page size, allocation/liveness/dirty state, direct read/write, clean/free, stale generation rejection, capacity exhaustion, cross-shelf rejection, dirty-slot copying, and exact-once normal-path allocation release. See [DataShelfTests.cs](../../tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs).
 
 Performance comparisons live in the [benchmark repository](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse). Do not infer measured speed from the complexity table.
 
