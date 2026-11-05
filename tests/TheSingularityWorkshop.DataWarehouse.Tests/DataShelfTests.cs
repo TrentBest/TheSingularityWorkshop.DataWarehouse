@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using TheSingularityWorkshop.DataWarehouse;
 using Xunit;
 
@@ -9,6 +10,12 @@ public sealed class DataShelfTests
     {
         public long Id;
         public int State;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Size = 8192)]
+    private struct LargeRecord
+    {
+        public byte Value;
     }
 
     [Fact]
@@ -162,6 +169,31 @@ public sealed class DataShelfTests
 
         shelf.Dispose();
         Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+    }
+
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(63)]
+    [InlineData(65)]
+    [InlineData(4095)]
+    public void ShelfRejectsInvalidPageSizes(int pageSize)
+    {
+        using var warehouse = new DataWarehouse();
+        Assert.Throws<ArgumentOutOfRangeException>(() => warehouse.CreateShelf<Record>(1, pageSize));
+    }
+
+    [Fact]
+    public void ElementLargerThanPageSize_RoundsToMultipleOfElementExtent()
+    {
+        using var warehouse = new DataWarehouse(4096);
+        using var shelf = warehouse.CreateShelf<LargeRecord>(1);
+
+        Assert.Equal(8192, shelf.ElementSize);
+        Assert.Equal(8192, shelf.AllocatedBytes);
+        Assert.Equal(8192, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(0, (long)shelf.BaseAddress % shelf.PageSize);
     }
 
     private static long ReadValue(DataShelf<Record> shelf, DataHandle handle) => shelf.Read(handle).Id;
