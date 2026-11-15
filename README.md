@@ -67,7 +67,7 @@ It does **not** currently promise thread-safe concurrent mutation, variable-size
 
 ## 04 See it in a minute
 
-Requires the .NET 8 SDK.
+Requires the .NET 10 SDK.
 
 ```csharp
 using TheSingularityWorkshop.DataWarehouse;
