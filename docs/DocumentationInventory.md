@@ -28,6 +28,7 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | Benchmark evidence | Implemented separately | Named workloads and CI artifacts live in the benchmark repository |
 | Deployment diagram | Not applicable | Current library is an in-process .NET component |
 | MicroBundle views | Not applicable | No MicroBundle dependency or contract in this repository |
+| SURPS domain sourcebooks | Implemented (initial collection) | Warehouse, data-center, and extreme-environment domains; separate from library implementation |
 | Automated diagram generation / stale-output gate | Planned | No repository-wide generator or completeness gate is claimed today |
 
 ## Visual provenance
