@@ -105,6 +105,8 @@ The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingula
 
 ## 05 Available documentation and theory
 
+- [SURPS sourcebooks — warehouses and data centers across time and space](docs/SURPS/README.md)
+
 - [Documentation inventory and diagram status](docs/DocumentationInventory.md)
 - [DataShelf API and operational contract](docs/api/DataShelf.md)
 - [DataShelf lifecycle sequence](docs/UML/DataShelf-Lifecycle.md)
@@ -117,4 +119,4 @@ The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingula
 
 This repository owns low-level memory layout, slot lifecycle, and direct access. It does not require Unity, FSM_COS, MicroBundleDomain, Ontology, or a UI framework. Complexity statements describe algorithmic structure, not guaranteed wall-clock speed; benchmark claims must name their workload and environment.
 
-<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop avatar" width="200" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop" width="200" /></p>
