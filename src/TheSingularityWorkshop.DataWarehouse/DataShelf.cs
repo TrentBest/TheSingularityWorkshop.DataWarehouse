@@ -26,13 +26,21 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
     private int _freeCount;
     private int _disposed;
 
+    /// <summary>Process-local identity of this shelf.</summary>
     public int Id { get; }
+    /// <summary>Current number of slots.</summary>
     public int Capacity { get; private set; }
+    /// <summary>Requested page alignment for this shelf, in bytes.</summary>
     public int PageSize { get; }
+    /// <summary>Size of one unmanaged record, in bytes.</summary>
     public int ElementSize => sizeof(T);
+    /// <summary>Number of currently allocated live slots.</summary>
     public int AliveCount { get; private set; }
+    /// <summary>Number of live slots currently marked dirty.</summary>
     public int DirtyCount { get; private set; }
+    /// <summary>Current raw allocation address for diagnostics; zero after disposal.</summary>
     public nint BaseAddress => IsDisposed ? 0 : (nint)_baseAddress;
+    /// <summary>Current buddy-block extent in bytes; retained as a size diagnostic after disposal.</summary>
     public long AllocatedBytes => checked((long)_allocationSize);
 
     internal DataShelf(DataLake lake, int capacity, int pageSize)
@@ -123,6 +131,7 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         _lake.FreeAligned(previousAllocation);
     }
 
+    /// <summary>Allocates a free slot, clears its payload, marks it alive and dirty, and returns its handle.</summary>
     public bool TryAllocate(out DataHandle handle)
     {
         ThrowIfDisposed();
@@ -171,16 +180,19 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         return true;
     }
 
+    /// <summary>Returns the current generation-checked handle for a live slot index.</summary>
     public bool IsAlive(DataHandle handle) =>
         !IsDisposed && handle.ShelfId == Id && (uint)handle.Slot < (uint)Capacity &&
         _generations[handle.Slot] == handle.Generation && GetBit(_alive, handle.Slot);
 
+    /// <summary>Returns whether a valid live slot is currently dirty.</summary>
     public bool IsDirty(DataHandle handle)
     {
         var slot = Validate(handle);
         return GetBit(_dirty, slot);
     }
 
+    /// <summary>Clears the dirty bit; returns false if the slot was already clean.</summary>
     public bool MarkClean(DataHandle handle)
     {
         var slot = Validate(handle);
@@ -190,6 +202,7 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         return true;
     }
 
+    /// <summary>Frees a live slot and advances its generation; returns false for a stale or non-live handle.</summary>
     public bool TryFree(DataHandle handle)
     {
         ThrowIfDisposed();
@@ -209,6 +222,7 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
     }
 
     /// <summary>Copies dirty slot indexes into the caller-provided buffer; returns the count written.</summary>
+    /// <summary>Copies dirty slot indexes in ascending order into the destination and returns the number written.</summary>
     public int CopyDirtySlots(Span<int> destination)
     {
         ThrowIfDisposed();
@@ -242,6 +256,7 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
     private bool IsDisposed => Volatile.Read(ref _disposed) != 0;
     private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(IsDisposed, this);
 
+    /// <summary>Returns this shelf's page run to the lake exactly once.</summary>
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
