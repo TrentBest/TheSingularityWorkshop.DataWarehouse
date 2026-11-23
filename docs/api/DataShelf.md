@@ -29,7 +29,7 @@ DataWarehouse is deliberately security-agnostic. It stores records and maintains
 | `TryAllocate(out handle)` | Pops a free slot, marks alive + dirty, clears record bytes, creates a generation-checked handle | O(1) plus `sizeof(T)` clearing |
 | `GetRef(handle)` | Validates shelf, bounds, generation, liveness; marks dirty if needed; returns mutable ref | O(1) |
 | `Read(handle)` | Same handle validation; returns read-only ref | O(1) |
-| `IsAlive(handle)` | Returns false for disposed, foreign, out-of-range, stale, or non-alive handles | O(1) |
+| `IsAlive(handle)` | Returns false for disposed, foreign, out-of-range, stale, or non-alive handles | O(1) |\n| `TryGetHandle(slot, out handle)` | Resolves a live slot index to its current generation-checked handle | O(1) |
 | `IsDirty(handle)` | Validates handle and reads dirty bit | O(1) |
 | `MarkClean(handle)` | Validates handle; clears dirty bit if set | O(1) |
 | `TryFree(handle)` | Rejects non-live handles; clears tracking, advances generation, pushes slot to free stack unless retired | O(1) |
