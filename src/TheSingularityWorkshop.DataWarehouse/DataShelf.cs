@@ -180,7 +180,7 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         return true;
     }
 
-    /// <summary>Returns the current generation-checked handle for a live slot index.</summary>
+    /// <summary>Returns whether the supplied handle identifies a live slot in this shelf.</summary>
     public bool IsAlive(DataHandle handle) =>
         !IsDisposed && handle.ShelfId == Id && (uint)handle.Slot < (uint)Capacity &&
         _generations[handle.Slot] == handle.Generation && GetBit(_alive, handle.Slot);
