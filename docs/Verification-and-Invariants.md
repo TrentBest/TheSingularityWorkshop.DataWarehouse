@@ -36,7 +36,10 @@ This document maps the storage domain to properties that can be tested or otherw
 | DW-024 | Shelf growth preserves live payload, handles, generations, and bitmaps | EnsureCapacity growth and 65-to-129 bitmap-boundary tests | Growth across several repeated reallocations |
 | DW-025 | Shelf growth returns the old block only after replacement is committed | EnsureCapacity implementation and growth test | Fault injection during copy/commit is not available |
 | DW-026 | Disposed lake defers region release until all shelves return allocations | Deferred-disposal test with multiple live shelves | Multiple regions with mixed outstanding allocations |
-| DW-027 | Regions larger than the default are allocated as power-of-two backing blocks | Oversized shelf region test | Very large page-index limits |\n| DW-028 | Live shelf page runs never overlap | Deterministic randomized range-overlap test | More randomized seeds and mixed frees |\n| DW-029 | Reclaimed buddy blocks remain reusable and fully coalesce | Randomized release and subsequent larger allocation | Stress over multiple region sizes |\n| DW-030 | Larger shelf alignment overrides are honored by the lake | 8 KiB override over 4 KiB base-page test | More alignment ratios and platform validation |
+| DW-027 | Regions larger than the default are allocated as power-of-two backing blocks | Oversized shelf region test | Very large page-index limits |
+| DW-028 | Live shelf page runs never overlap | Deterministic randomized range-overlap test | More randomized seeds and mixed frees |
+| DW-029 | Reclaimed buddy blocks remain reusable and fully coalesce | Randomized release and subsequent larger allocation | Stress over multiple region sizes |
+| DW-030 | Larger shelf alignment overrides are honored by the lake | 8 KiB override over 4 KiB base-page test | More alignment ratios and platform validation |
 
 ## 02 Required state relationships
 
