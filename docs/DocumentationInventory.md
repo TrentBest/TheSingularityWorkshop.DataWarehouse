@@ -29,6 +29,7 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | Deployment diagram | Not applicable | Current library is an in-process .NET component |
 | MicroBundle views | Not applicable | No MicroBundle dependency or contract in this repository |
 | SURPS domain sourcebooks | Implemented (growing collection) | Warehouse, data-center, extreme-environment, archetype, and eight-site LOD 3–4 facility-atlas coverage; separate from library implementation |
+| SURPS facility diagrams | Implemented (authored static Mermaid) | Conceptual site plans, operational flows, dependency maps, and failure propagation for six constructed settings; not engineering drawings |
 | Automated diagram generation / stale-output gate | Planned | No repository-wide generator or completeness gate is claimed today |
 
 ## Visual provenance
