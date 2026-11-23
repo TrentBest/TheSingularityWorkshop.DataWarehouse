@@ -10,23 +10,23 @@ This document maps the storage domain to properties that can be tested or otherw
 
 | ID | Invariant | Current evidence | Verification gap |
 |---|---|---|---|
-| DW-001 | Every shelf has positive fixed capacity | Constructor guard | Add explicit capacity boundary tests |
-| DW-002 | Page alignment is a power of two and at least 64 | Constructor guards | Constructor/default and override test matrix |
+| DW-001 | Every shelf has positive fixed capacity | Constructor guard; zero and negative capacity tests | No known basic boundary gap |
+| DW-002 | Page alignment is a power of two and at least 64 | Constructor guards; invalid default and override tests | Broader valid page-size matrix remains useful |
 | DW-003 | Shelf base address satisfies requested alignment | Alignment tests | Multiple types and page sizes |
 | DW-004 | Allocation extent is rounded to page-size multiple | Extent tests | Very large overflow boundaries |
-| DW-005 | New native allocation is zeroed | Allocation path clears memory | Explicit record-zero test |
+| DW-005 | New and reused record slots are zeroed | Allocation path plus new/reused slot test | Rounded padding bytes are not directly inspected |
 | DW-006 | Only one unmanaged T occupies a shelf | Generic constraint | Compile-time contract |
 | DW-007 | A live handle matches shelf, slot, generation, and alive bit | Validate | Invalid bounds/default/stale/foreign matrix |
 | DW-008 | Allocate increases alive and dirty counts exactly once | Allocation test | Repeated allocate/clean/reallocate matrix |
 | DW-009 | Mutable access marks dirty before exposing ref | Access test | Repeated access does not double count |
-| DW-010 | Read-only access does not mark dirty | Implementation | Dedicated test |
-| DW-011 | MarkClean decrements dirty count only on transition | Implementation | Repeated clean test |
+| DW-010 | Read-only access does not mark dirty | Dedicated read-only test | None identified for single-threaded behavior |
+| DW-011 | MarkClean decrements dirty count only on transition | Repeated clean/idempotence test | None identified for single-threaded behavior |
 | DW-012 | Free clears alive and dirty state | Free test | Free both clean and dirty records |
 | DW-013 | Reuse advances generation | Stale-handle test | Repeated reuse test |
 | DW-014 | Generation never wraps and exhausted slots retire | Reflection-assisted test | Documented exceptional boundary |
-| DW-015 | Dirty-slot copy emits only dirty indexes | Dirty-copy test | Empty/truncated destination and bitmap word boundaries |
-| DW-016 | Shelf disposal releases allocation exactly once | Disposal test | Operations-after-dispose matrix |
-| DW-017 | Warehouse disposal releases every registered shelf | Aggregate disposal test | Repeated and concurrent create/dispose boundary |
+| DW-015 | Dirty-slot copy emits only dirty indexes | Empty/undersized destination tests and 63/64/65/127/128/129 capacity boundaries | Concurrent mutation remains outside contract |
+| DW-016 | Shelf disposal releases allocation exactly once | Exact-once release and operations-after-dispose tests | Raw ref/address use after disposal cannot be made safe by this API |
+| DW-017 | Warehouse disposal releases every registered shelf | Aggregate, repeated, and individual-shelf accounting tests | Deterministic race/fault injection remains absent |
 | DW-018 | Lake rejects allocations after disposal | Lifecycle test | Accounting under mixed allocation/free |
 | DW-019 | Existing shelves can release memory after lake close | Lifecycle test | Already represented by current test |
 | DW-020 | No shared-shelf concurrency guarantee is claimed | API contract | Documentation and examples must remain explicit |
@@ -68,19 +68,13 @@ See `tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs`. The te
 
 ## 04 Missing verification before declaring the domain complete
 
-1. Zero-initialization test for newly allocated and reused slots.
-2. Read-only access leaves dirty state unchanged.
-3. Repeated `GetRef` does not increment `DirtyCount` more than once.
-4. Repeated `MarkClean` is idempotent and returns false after the first transition.
-5. Dirty-copy behavior for empty, undersized, and exact-size destinations.
-6. Bitmap word boundaries at capacities 63, 64, 65, 127, 128, and 129.
-7. Invalid/default/out-of-range handles and disposed-shelf behavior.
-8. Warehouse constructor and shelf-capacity validation.
-9. Shelf disposal while records are live, followed by use attempts.
-10. Multi-shelf accounting through mixed individual and aggregate disposal.
-11. Checked-overflow behavior for capacity × record size and rounded extent.
-12. Failure-path behavior when managed metadata allocation or native allocation cannot complete.
-13. A clear decision and test for public exposure of `BaseAddress` and `DataWarehouse.Lake`.
+1. Exact-size dirty-copy buffer coverage in addition to empty and undersized buffers.
+2. Additional valid page-size and record-size combinations, including more architecture-sensitive alignment cases.
+3. Checked-overflow behavior for capacity × record size and rounded extent.
+4. Failure-path behavior when managed metadata allocation or native allocation cannot complete.
+5. A deterministic fault-injection test for failure while registering a newly allocated shelf with its warehouse.
+6. A clear API decision on public exposure of `BaseAddress` and `DataWarehouse.Lake`; current docs describe the hazards but do not remove the escape hatches.
+7. A dedicated test for the `DataWarehouse.CreateShelf` create/dispose race if a deterministic synchronization seam is introduced.
 
 Concurrency stress tests are not appropriate until a concurrency contract is selected. The current contract is externally synchronized single-shelf access / independent shelf ownership.
 
