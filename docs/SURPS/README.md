@@ -39,6 +39,8 @@ LOD is a detail-selection mechanism, not a claim that every setting progresses t
 | [SURPS Scenario Event Catalog — Actions, Evidence, and State Change](Scenario-Event-Catalog.md) | Domain-neutral event families, transition discipline, evidence, cross-domain sequences, invariants, failure chains, and measures |
 
 | [Connected World Matrix](Connected-World-Matrix.md) | Organizing matrix for electronics, digital logic, computing, networks, software, cyber operations, evidence, resilience, and human institutions |
+| [Electricity, Fields, and Signals](Electricity-Fields-and-Signals.md) | Charge, current, voltage, fields, circuit relationships, signals, measurement, uncertainty, energy, and conceptual labs |
+| [Components and Electronic Devices](Components-and-Electronic-Devices.md) | Passive and semiconductor components, integrated circuits, sensors, actuators, boards, interfaces, lifecycle, and failure concepts |
 | [Digital Logic and Circuitry](Digital-Logic-and-Circuitry.md) | Physical-to-digital foundations, components, Boolean logic, combinational and sequential circuits, clocks, memory, and learning labs |
 | [Cyber Operations and Intrusion Simulations](Cyber-Operations-and-Intrusion-Simulations.md) | Safe fictional cyber missions, access and interception concepts, DoS simulation, detection, evidence, defense, and recovery |
 
