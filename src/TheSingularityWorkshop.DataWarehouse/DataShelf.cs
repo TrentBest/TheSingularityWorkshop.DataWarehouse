@@ -157,6 +157,20 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         return ref ((T*)_baseAddress)[slot];
     }
 
+    /// <summary>Returns the current generation-checked handle for a live slot index.</summary>
+    public bool TryGetHandle(int slot, out DataHandle handle)
+    {
+        ThrowIfDisposed();
+        if ((uint)slot >= (uint)Capacity || !GetBit(_alive, slot))
+        {
+            handle = default;
+            return false;
+        }
+
+        handle = new DataHandle(Id, slot, _generations[slot]);
+        return true;
+    }
+
     public bool IsAlive(DataHandle handle) =>
         !IsDisposed && handle.ShelfId == Id && (uint)handle.Slot < (uint)Capacity &&
         _generations[handle.Slot] == handle.Generation && GetBit(_alive, handle.Slot);
