@@ -18,7 +18,8 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | DataLake allocation contract | Implemented (source-checked) | Shared backing regions, buddy page allocation/splitting/coalescing, clearing, active/reserved accounting, reuse, deferred disposal |
 | DataHandle identity contract | Implemented (source-checked) | Shelf/slot/generation validation, stale-handle prevention, generation retirement, lifetime and security boundary |
 | DataLake region-allocation lifecycle | Source-checked | Region creation, buddy allocation, reclamation/coalescing, region reuse, deferred disposal |
-| Record design and memory patterns | Implemented | Fixed-layout unmanaged records, compact state, AoS/SoA patterns, handles, dirty processing, metadata cost, growth and lifetime |\n| DataShelf API and operational contract | Implemented | Operation semantics, dirty-slot-to-handle resolution, failure behavior, complexity, dynamic capacity growth, relocation/lifetime, tests, concurrency caveat |
+| Record design and memory patterns | Implemented | Fixed-layout unmanaged records, compact state, AoS/SoA patterns, handles, dirty processing, metadata cost, growth and lifetime |
+| DataShelf API and operational contract | Implemented | Operation semantics, dirty-slot-to-handle resolution, failure behavior, complexity, dynamic capacity growth, relocation/lifetime, tests, concurrency caveat |
 | Class/type diagram | Planned | Show public types and ownership without inventing relationships |
 | Type neighborhood pages | Partial | DataLake, DataHandle, and DataShelf contracts documented; DataWarehouse public factory/disposal contract is covered in the architecture page |
 | DataShelf lifecycle sequence | Source-checked | Allocate, mutable access, dirty marking, clean, free, generation change |
