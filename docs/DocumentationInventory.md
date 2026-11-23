@@ -16,9 +16,10 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | README / quick start | Implemented | Product identity, rationale, example, scope, verification path |
 | Architecture and domain model | Implemented (source-checked) | Vocabulary, ownership topology, type responsibilities, memory model, lifecycle, concurrency, non-goals |
 | DataLake allocation contract | Implemented (source-checked) | Aligned allocation, accounting, clearing, release, disposal, synchronization limits |
+| DataHandle identity contract | Implemented (source-checked) | Shelf/slot/generation validation, stale-handle prevention, generation retirement, lifetime and security boundary |
 | DataShelf API and operational contract | Implemented | Operation semantics, failure behavior, complexity, tests, concurrency caveat |
 | Class/type diagram | Planned | Show public types and ownership without inventing relationships |
-| Type neighborhood pages | Partial | DataLake and DataShelf contracts documented; additional member-level reference coverage can follow |
+| Type neighborhood pages | Partial | DataLake, DataHandle, and DataShelf contracts documented; DataWarehouse public factory/disposal contract is covered in the architecture page |
 | DataShelf lifecycle sequence | Source-checked | Allocate, mutable access, dirty marking, clean, free, generation change |
 | Lifecycle/state transitions | Source-checked | Alive/dirty/generation changes for the current implementation |
 | Data-flow / memory-layout diagram | Source-checked conceptual view | README illustration; not a byte-accurate layout |
