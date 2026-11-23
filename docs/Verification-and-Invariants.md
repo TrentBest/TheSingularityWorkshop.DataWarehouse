@@ -110,7 +110,7 @@ Concurrent mutation of one shelf remains unsupported and requires external synch
 
 ## 05 Latest CI evidence
 
-The shared-page allocator and shelf-growth implementation was built and tested on .NET 10 at commit `c6f2abe74b7918d4d7323fe062fca3bbf5a3c20b`:
+The shared-page allocator and shelf-growth implementation was built and tested on .NET 10 at commit `84a9c2e63c3ea82544c7ddfc2f5eec7e09ddeb95`:
 
 - Ubuntu latest: 55 passed, 0 failed, 0 skipped.
 - Windows latest: 55 passed, 0 failed, 0 skipped.
