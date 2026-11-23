@@ -28,7 +28,18 @@ public sealed class DataWarehouse : IDisposable
                 shelf.Dispose();
                 throw new ObjectDisposedException(nameof(DataWarehouse));
             }
-            _shelves.Add(shelf);
+            try
+            {
+                _shelves.Add(shelf);
+            }
+            catch
+            {
+                // The shelf already owns native memory. If managed ownership registration
+                // fails (for example, List growth throws), release that allocation before
+                // propagating the original failure.
+                shelf.Dispose();
+                throw;
+            }
         }
         return shelf;
     }
