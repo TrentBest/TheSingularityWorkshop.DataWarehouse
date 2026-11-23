@@ -197,15 +197,18 @@ internal sealed unsafe class DataLakeRegion : IDisposable
         MaxOrder = BitOperations.Log2((uint)pageCount);
         ReservedBytes = checked((nuint)pageSize * (nuint)pageCount);
 
+        // Complete all managed metadata setup before reserving native memory. If a managed
+        // allocation fails, construction cannot strand an unmanaged region.
+        _freeBlocks = new HashSet<int>[MaxOrder + 1];
+        for (var order = 0; order < _freeBlocks.Length; order++)
+            _freeBlocks[order] = [];
+        _freeBlocks[MaxOrder].Add(0);
+
         _baseAddress = (byte*)NativeMemory.AlignedAlloc(ReservedBytes, ReservedBytes);
         if (_baseAddress == null)
             throw new OutOfMemoryException($"Unable to reserve {ReservedBytes} bytes for a data-lake region.");
 
         NativeMemory.Clear(_baseAddress, ReservedBytes);
-        _freeBlocks = new HashSet<int>[MaxOrder + 1];
-        for (var order = 0; order < _freeBlocks.Length; order++)
-            _freeBlocks[order] = [];
-        _freeBlocks[MaxOrder].Add(0);
     }
 
     public bool TryAllocate(int requiredPages, int alignmentPages, out int startPage, out int order)
@@ -248,6 +251,12 @@ internal sealed unsafe class DataLakeRegion : IDisposable
         if (!_allocatedBlocks.TryGetValue(startPage, out var allocatedOrder) || allocatedOrder != order)
             throw new InvalidOperationException("The page allocation is unknown, already freed, or has an invalid extent.");
 
+        // Reserve hash-table capacity before mutating allocator state. The subsequent
+        // coalescing path must not fail halfway through because a free-list resize allocates.
+        _allocatedBlocks.EnsureCapacity(_allocatedBlocks.Count);
+        for (var candidate = order; candidate <= MaxOrder; candidate++)
+            _freeBlocks[candidate].EnsureCapacity(_freeBlocks[candidate].Count + 1);
+
         _allocatedBlocks.Remove(startPage);
         var mergedStart = startPage;
         var mergedOrder = order;
@@ -274,9 +283,10 @@ internal sealed unsafe class DataLakeRegion : IDisposable
 
     public void Dispose()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        if (Volatile.Read(ref _disposed) != 0) return;
         if (_allocatedBlocks.Count != 0)
             throw new InvalidOperationException("A data-lake region cannot be released while page allocations remain outstanding.");
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         NativeMemory.AlignedFree(_baseAddress);
     }
 
