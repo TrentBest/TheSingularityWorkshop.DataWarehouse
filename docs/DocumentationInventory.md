@@ -32,6 +32,9 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | SURPS facility diagrams | Implemented (authored static Mermaid) | Conceptual site plans, operational flows, dependency maps, and failure propagation for six constructed settings; not engineering drawings |
 | SURPS facility scenario packs | Implemented (constructed scenario data) | Four facility packs with stock snapshots, staffing and authority, schedules, incidents, invariants, and outcome measures; values are illustrative |
 | SURPS scenario event catalog | Implemented (domain vocabulary) | Event families, preconditions, evidence, state-transition discipline, cross-domain sequences, invariants, failure chains, and measures; not a software event schema |
+| SURPS connected-world matrix | Implemented (sourcebook index) | Cross-layer map from physical electronics through digital logic, computing, communications, cyber operations, evidence, resilience, and human institutions |
+| SURPS digital logic and circuitry | Implemented (educational domain sourcebook) | Components, switching, Boolean logic, combinational and sequential circuits, clocks, memory, state machines, and conceptual labs |
+| SURPS cyber operations and intrusion simulations | Implemented (safe fictional scenario sourcebook) | Abstract access, interception, exploit classes, DoS effects, detection, incident response, evidence, and recovery; excludes real-target procedures and executable attack techniques |
 | Automated diagram generation / stale-output gate | Planned | No repository-wide generator or completeness gate is claimed today |
 
 ## Visual provenance
