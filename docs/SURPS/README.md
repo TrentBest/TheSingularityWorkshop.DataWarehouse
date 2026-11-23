@@ -36,6 +36,7 @@ LOD is a detail-selection mechanism, not a claim that every setting progresses t
 | [SURPS Facility Atlas — Named Sites Across Time and Space](Facility-Atlas-Named-Sites-Across-Time-and-Space.md) | Eight LOD 3–4 constructed facilities with layouts, operating roles, dependencies, incident scenarios, and simulation hooks |
 | [SURPS Facility Diagrams — Plans, Flows, and Dependencies](Facility-Diagrams-Plans-Flows-and-Dependencies.md) | Conceptual compound plans, cargo and data flows, infrastructure dependencies, failure propagation, and diagram authoring rules |
 | [SURPS Facility Scenario Packs — Inventories, Rosters, Schedules, and Incidents](Facility-Scenario-Packs-Inventories-Rosters-Schedules-and-Incidents.md) | Four constructed operating scenarios with initial stock, staff authority, shift schedules, incidents, invariants, and outcome measures |
+| [SURPS Scenario Event Catalog — Actions, Evidence, and State Change](Scenario-Event-Catalog.md) | Domain-neutral event families, transition discipline, evidence, cross-domain sequences, invariants, failure chains, and measures |
 
 ## Shared sourcebook grammar
 
