@@ -31,7 +31,9 @@ LOD is a detail-selection mechanism, not a claim that every setting progresses t
 |---|---|
 | [The Warehouse Across Time and Space](The-Warehouse-Across-Time-and-Space.md) | Physical goods, materials, stockpiles, archives, depots, cold chains, logistics, and non-modern civilizations |
 | [The Data Center Across Time and Space](The-Data-Center-Across-Time-and-Space.md) | Information storage and processing from human memory and physical media through mechanical, electronic, networked, and speculative systems |
-| [Storage Environments and Extreme Facilities](Storage-Environments-and-Extreme-Facilities.md) | Underground, underwater, polar, desert, airborne, orbital, interplanetary, mobile, hostile, and unusual storage contexts |\n| [Warehouse and Data-Center Archetypes](Warehouse-and-Data-Center-Archetypes.md) | Reusable facility patterns spanning household reserves, granaries, depots, archives, computing centers, remote outposts, and off-world knowledge cores |
+| [Storage Environments and Extreme Facilities](Storage-Environments-and-Extreme-Facilities.md) | Underground, underwater, polar, desert, airborne, orbital, interplanetary, mobile, hostile, and unusual storage contexts |
+| [Warehouse and Data-Center Archetypes](Warehouse-and-Data-Center-Archetypes.md) | Reusable facility patterns spanning household reserves, granaries, depots, archives, computing centers, remote outposts, and off-world knowledge cores |
+| [SURPS Facility Atlas — Named Sites Across Time and Space](Facility-Atlas-Named-Sites-Across-Time-and-Space.md) | Eight LOD 3–4 constructed facilities with layouts, operating roles, dependencies, incident scenarios, and simulation hooks |
 
 ## Shared sourcebook grammar
 
@@ -51,3 +53,7 @@ Each book should define:
 A **warehouse** primarily holds and moves things. A **data center** primarily preserves, transforms, and serves information and computation. Real facilities can combine both: a logistics warehouse may run a data center; a data center may contain extensive physical stores, spare-parts depots, batteries, fuel, and archives. The books remain distinct so neither domain is reduced to the other.
 
 These books describe domain possibilities. They do not assert that any particular facility, technology, mechanic, or simulation behavior is already implemented in the DataWarehouse library.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop" width="420" />
+</p>
