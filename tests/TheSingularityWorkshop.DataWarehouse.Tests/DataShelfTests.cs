@@ -209,8 +209,8 @@ public sealed class DataShelfTests
         using var shelf = warehouse.CreateShelf<NonPageMultipleLargeRecord>(2);
 
         Assert.Equal(5000, shelf.ElementSize);
-        Assert.Equal(12288, shelf.AllocatedBytes);
-        Assert.Equal(12288, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(16384, shelf.AllocatedBytes);
+        Assert.Equal(16384, warehouse.Lake.AllocatedBytes);
         Assert.Equal(0, (long)shelf.BaseAddress % shelf.PageSize);
     }
 
@@ -394,6 +394,132 @@ public sealed class DataShelfTests
         Assert.Equal(second.AllocatedBytes, warehouse.Lake.AllocatedBytes);
         second.Dispose();
         Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+    }
+
+
+    [Fact]
+    public void MultipleShelves_SuballocateFromOneSharedBackingRegion()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var first = warehouse.CreateShelf<Record>(1);
+        using var second = warehouse.CreateShelf<Record>(1);
+
+        Assert.Equal(1, warehouse.Lake.RegionCount);
+        Assert.Equal(16384, warehouse.Lake.ReservedBytes);
+        Assert.Equal(first.AllocatedBytes + second.AllocatedBytes, warehouse.Lake.AllocatedBytes);
+        Assert.NotEqual(first.BaseAddress, second.BaseAddress);
+    }
+
+    [Fact]
+    public void FreedBuddyPages_CoalesceForLargerShelfAllocation()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        var first = warehouse.CreateShelf<Record>(1);
+        var second = warehouse.CreateShelf<Record>(1);
+        Assert.Equal(1, warehouse.Lake.RegionCount);
+
+        first.Dispose();
+        second.Dispose();
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+
+        using var larger = warehouse.CreateShelf<Record>(257); // 4,112 payload bytes => two pages.
+        Assert.Equal(1, warehouse.Lake.RegionCount);
+        Assert.Equal(8192, larger.AllocatedBytes);
+        Assert.Equal(8192, warehouse.Lake.AllocatedBytes);
+    }
+
+    [Fact]
+    public void EnsureCapacity_GrowsShelfAndPreservesExistingHandlesAndState()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<Record>(1);
+        Assert.True(shelf.TryAllocate(out var original));
+        shelf.GetRef(original).Id = 1234;
+        shelf.GetRef(original).State = 9;
+        Assert.True(shelf.MarkClean(original));
+
+        var previousAddress = shelf.BaseAddress;
+        shelf.EnsureCapacity(257);
+
+        Assert.Equal(257, shelf.Capacity);
+        Assert.NotEqual(previousAddress, shelf.BaseAddress);
+        Assert.True(shelf.IsAlive(original));
+        Assert.False(shelf.IsDirty(original));
+        Assert.Equal(1234, shelf.Read(original).Id);
+        Assert.Equal(9, shelf.Read(original).State);
+
+        Assert.True(shelf.TryAllocate(out var added));
+        Assert.Equal(1, added.Slot);
+        Assert.Equal(0, shelf.Read(added).Id);
+        Assert.Equal(0, shelf.Read(added).State);
+        Assert.Equal(2, shelf.AliveCount);
+        Assert.Equal(1, shelf.DirtyCount);
+    }
+
+    [Fact]
+    public void EnsureCapacity_NoOpsForExistingCapacityAndRejectsInvalidValues()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<Record>(4);
+        var address = shelf.BaseAddress;
+
+        shelf.EnsureCapacity(4);
+        shelf.EnsureCapacity(2);
+
+        Assert.Equal(4, shelf.Capacity);
+        Assert.Equal(address, shelf.BaseAddress);
+        Assert.Throws<ArgumentOutOfRangeException>(() => shelf.EnsureCapacity(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => shelf.EnsureCapacity(-1));
+    }
+
+    [Fact]
+    public void LakeDispose_DefersRegionReleaseUntilEveryShelfReturnsItsPages()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        var first = warehouse.CreateShelf<Record>(1);
+        var second = warehouse.CreateShelf<Record>(1);
+
+        warehouse.Lake.Dispose();
+
+        Assert.True(warehouse.Lake.IsDisposed);
+        Assert.Equal(16384, warehouse.Lake.ReservedBytes);
+        Assert.Throws<ObjectDisposedException>(() => warehouse.CreateShelf<Record>(1));
+
+        first.Dispose();
+        Assert.Equal(16384, warehouse.Lake.ReservedBytes);
+        second.Dispose();
+
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(0, warehouse.Lake.ReservedBytes);
+        Assert.Equal(0, warehouse.Lake.RegionCount);
+    }
+
+    [Fact]
+    public void OversizedShelf_ReceivesDedicatedPowerOfTwoBackingRegion()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<Record>(1025); // 16,400 bytes => five pages.
+
+        Assert.Equal(32768, shelf.AllocatedBytes);
+        Assert.Equal(32768, warehouse.Lake.ReservedBytes);
+        Assert.Equal(1, warehouse.Lake.RegionCount);
+    }
+
+    [Fact]
+    public void LakeRetainsFreedRegionsForReuseUntilDisposed()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        var first = warehouse.CreateShelf<Record>(1);
+        var address = first.BaseAddress;
+        first.Dispose();
+
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(16384, warehouse.Lake.ReservedBytes);
+        Assert.Equal(1, warehouse.Lake.RegionCount);
+
+        using var second = warehouse.CreateShelf<Record>(1);
+        Assert.Equal(1, warehouse.Lake.RegionCount);
+        Assert.Equal(address, second.BaseAddress);
     }
 
     private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)
