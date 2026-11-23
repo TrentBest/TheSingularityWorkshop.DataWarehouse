@@ -4,7 +4,7 @@
 
 ## 00 Identity
 
-This sequence explains the current shelf creation, slot allocation → access → clean → free lifecycle in DataShelf<T>. Shared native page-run allocation and reclamation are shown separately in [DataLake region allocation](DataLake-Region-Allocation.md). It is **source-checked**, not generated from reflection and not runtime-captured.
+This sequence explains the current shelf creation, slot allocation → access → clean → free lifecycle in `DataShelf<T>`. Shared native page-run allocation and reclamation are shown separately in [DataLake region allocation](DataLake-Region-Allocation.md). It is **source-checked**, not generated from reflection and not runtime-captured.
 
 ## 01 Sequence
 
@@ -35,6 +35,7 @@ sequenceDiagram
         Shelf->>Shelf: Increment generation; push slot to free stack
     else Generation exhausted
         Shelf->>Shelf: Retire slot permanently
+    end
     Shelf-->>Caller: true
 ```
 
@@ -46,18 +47,20 @@ sequenceDiagram
 | Allocate slot | true | true | unchanged |
 | Mutable GetRef | unchanged | true | unchanged |
 | MarkClean succeeds | unchanged | false | unchanged |
-| Free live slot below generation limit | false | false | incremented; slot returns to free stack |\n| Free live slot at int.MaxValue | false | false | unchanged; slot is permanently retired |
+| Free live slot below generation limit | false | false | incremented; slot returns to free stack |
+| Free live slot at int.MaxValue | false | false | unchanged; slot is permanently retired |
 | Reallocate freed slot | true | true | uses current generation |
 
 ## 03 Read the diagram correctly
 
 - The shelf, not the caller, owns the slot bitmaps and free stack.
 - A mutable reference marks dirty when obtained, not when an assignment is later performed.
-- Freeing invalidates the old handle before the slot can be safely reused through a newly generated handle.\n- A slot at generation int.MaxValue is retired and is not returned to the free stack; generations never wrap.
+- Freeing invalidates the old handle before the slot can be safely reused through a newly generated handle.
+- A slot at generation int.MaxValue is retired and is not returned to the free stack; generations never wrap.
 - The diagram omits exceptional branches for invalid handles, exhaustion, and disposal; see the [DataShelf API contract](../api/DataShelf.md).
 
 
-## 05 Capacity growth
+## 04 Capacity growth
 
 ```mermaid
 sequenceDiagram
@@ -84,7 +87,7 @@ sequenceDiagram
 
 Growth preserves handles and record contents, but every ref and raw address obtained before growth becomes invalid. The caller must quiesce the shelf before invoking it. The replacement block is allocated before the old block is released, so growth may temporarily require both allocations to fit in the lake.
 
-## 06 Provenance and regeneration
+## 05 Provenance and regeneration
 
 - **Provenance:** manually authored from DataShelf.cs and DataShelfTests.cs on development.
 - **Generation:** no automated UML generator is currently claimed.
