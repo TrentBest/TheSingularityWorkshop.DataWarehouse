@@ -40,7 +40,8 @@ This document maps the storage domain to properties that can be tested or otherw
 | DW-028 | Live shelf page runs never overlap | Deterministic randomized range-overlap test | More randomized seeds and mixed frees |
 | DW-029 | Reclaimed buddy blocks remain reusable and fully coalesce | Randomized release and subsequent larger allocation | Stress over multiple region sizes |
 | DW-030 | Larger shelf alignment overrides are honored by the lake | 8 KiB override over 4 KiB base-page test | More alignment ratios and platform validation |
-| DW-031 | Dirty slot indexes can be resolved to current live handles | TryGetHandle test | Concurrent changes remain externally synchronized |\n| DW-032 | Individually disposed shelves unregister from warehouse ownership | ShelfCount lifecycle test | Concurrent create/dispose stress remains a future test |
+| DW-031 | Dirty slot indexes can be resolved to current live handles | TryGetHandle test | Concurrent changes remain externally synchronized |
+| DW-032 | Individually disposed shelves unregister from warehouse ownership | ShelfCount lifecycle test | Concurrent create/dispose stress remains a future test |
 
 ## 02 Required state relationships
 
@@ -74,7 +75,8 @@ The current test suite exercises:
 - Invalid page-size rejection.
 - Records larger than the configured page size.
 - Exact-once shelf disposal, post-disposal behavior, aggregate warehouse disposal, and mixed individual-shelf allocation accounting.
-- Warehouse default-page-size and shelf-capacity validation.\n- Individual shelf disposal unregistering ownership and keeping the warehouse's active ShelfCount accurate.
+- Warehouse default-page-size and shelf-capacity validation.
+- Individual shelf disposal unregistering ownership and keeping the warehouse's active ShelfCount accurate.
 - Generation exhaustion and slot retirement.
 - Shared-region allocation, buddy coalescing, randomized non-overlapping allocations, freed-region reuse, cross-shelf stale-byte clearing, oversized backing regions, and deferred region disposal after lake closure.
 - Shelf capacity growth preserving existing handles, payloads, and side-band state across a bitmap-word boundary.
