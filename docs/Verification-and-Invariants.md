@@ -99,7 +99,7 @@ See `tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs`. The te
 ## 04 Remaining verification before declaring the domain complete
 
 1. Broader page-size and record-size combinations, including architecture-sensitive alignment cases beyond the current Linux/Windows x64 matrix.
-2. Pure, allocation-free boundary tests for checked capacity × record-size arithmetic and buddy-order calculations. Current guards use checked arithmetic and reject page counts outside the supported integer index range, but extreme allocation requests are not safely testable by attempting real allocations.
+2. Pure, allocation-free boundary tests for checked capacity × record-size arithmetic and buddy-order calculations. `DataLakeSizing.CalculatePayloadBytes` now isolates checked native-size multiplication and is exercised at ordinary, zero, and overflow boundaries without allocating memory. Broader architecture-specific page-size and alignment matrices remain part of item 1.
 3. Failure-path tests for managed metadata allocation and native region allocation. These need a deterministic allocator/failure-injection seam rather than relying on actual process-wide out-of-memory conditions.
 4. A deterministic failure-injection test for warehouse ownership registration. The code returns the shelf allocation if registration fails, but the managed collection failure is not currently injectable.
 5. Higher-contention, long-duration independent-shelf create/dispose soak tests beyond the deterministic parallel and disposal-race tests.
