@@ -682,6 +682,114 @@ public sealed class DataShelfTests
         Assert.Equal(0, warehouse.ShelfCount);
     }
 
+
+    [Fact]
+    public void CopyDirtySlots_ExactSizeBufferReturnsEveryDirtyIndex()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<Record>(3);
+        for (var i = 0; i < 3; i++)
+            Assert.True(shelf.TryAllocate(out _));
+
+        Span<int> exact = stackalloc int[3];
+        Assert.Equal(3, shelf.CopyDirtySlots(exact));
+        Assert.Equal(new[] { 0, 1, 2 }, exact.ToArray());
+    }
+
+    [Fact]
+    public void IndependentShelves_CanBeCreatedAndDisposedConcurrently()
+    {
+        using var warehouse = new DataWarehouse(4096, 1024 * 1024);
+
+        Parallel.For(0, 128, _ =>
+        {
+            var shelf = warehouse.CreateShelf<Record>(8);
+            Assert.True(shelf.TryAllocate(out var handle));
+            shelf.GetRef(handle).Id = handle.Slot;
+            shelf.Dispose();
+        });
+
+        Assert.Equal(0, warehouse.ShelfCount);
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(1, warehouse.Lake.RegionCount);
+    }
+
+    [Fact]
+    public void WarehouseDispose_RacingShelfCreationReturnsEveryAllocation()
+    {
+        var warehouse = new DataWarehouse(4096, 16384);
+        using var start = new ManualResetEventSlim(false);
+
+        var workers = Enumerable.Range(0, 8).Select(_ => Task.Run(() =>
+        {
+            start.Wait();
+            for (var i = 0; i < 64; i++)
+            {
+                try
+                {
+                    var shelf = warehouse.CreateShelf<Record>(2);
+                    if (shelf.TryAllocate(out var handle))
+                        shelf.GetRef(handle).Id = i;
+                    shelf.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Expected once aggregate disposal closes the warehouse or lake.
+                }
+            }
+        })).ToArray();
+
+        start.Set();
+        warehouse.Dispose();
+        Task.WaitAll(workers);
+
+        Assert.Equal(0, warehouse.ShelfCount);
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(0, warehouse.Lake.ReservedBytes);
+        Assert.Equal(0, warehouse.Lake.RegionCount);
+    }
+
+    [Fact]
+    public void BuddyAllocator_RandomAllocateFreeInterleavingAcrossRegionsRemainsConsistent()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        var random = new Random(20261123);
+        var live = new List<DataShelf<Record>>();
+
+        for (var operation = 0; operation < 500; operation++)
+        {
+            if (live.Count == 0 || random.Next(100) < 62)
+            {
+                var shelf = warehouse.CreateShelf<Record>(random.Next(1, 500));
+                var start = (nuint)shelf.BaseAddress;
+                var end = checked(start + (nuint)shelf.AllocatedBytes);
+
+                foreach (var existing in live)
+                {
+                    var otherStart = (nuint)existing.BaseAddress;
+                    var otherEnd = checked(otherStart + (nuint)existing.AllocatedBytes);
+                    Assert.False(start < otherEnd && otherStart < end, "Live buddy allocations must not overlap.");
+                }
+
+                live.Add(shelf);
+            }
+            else
+            {
+                var index = random.Next(live.Count);
+                live[index].Dispose();
+                live.RemoveAt(index);
+            }
+        }
+
+        foreach (var shelf in live)
+            shelf.Dispose();
+
+        Assert.Equal(0, warehouse.ShelfCount);
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(warehouse.Lake.ReservedBytes, warehouse.Lake.FreeBytes);
+        Assert.True(warehouse.Lake.RegionCount > 1);
+    }
+
     private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)
     {
         shelf.GetRef(handle).Id = value;
