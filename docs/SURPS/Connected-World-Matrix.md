@@ -154,6 +154,33 @@ These are domain-level simulation suggestions, not a prescribed DataWarehouse re
 - **FSM_Foundry** executes the simulation and world behavior; this sourcebook defines domain concepts and possible scenario semantics, not an implementation dependency.
 - **SURPS** provides the world-building and simulation vocabulary for facilities, institutions, roles, events, and consequences.
 
+## Roleplaying in a layered digital world
+
+The matrix is also a playable genre setting. Use **The Matrix — A Roleplaying Setting of Layered Reality** for the world model, **The Game Master's Scenario Workshop** for scenario construction, and **Hacking as Roleplaying Gameplay** for player-facing computer actions. The setting is original and genre-inspired; it does not reproduce protected film characters, plots, dialogue, or designs.
+
+A campaign can move between embodied streets, device interfaces, networked communities, constructed environments, and control systems. The GM keeps established truth separate from character evidence and claims made by NPCs or AI agents. Every important place and service has owners, operators, routines, dependencies, access rules, and failure behavior.
+
+### Computer interaction is a game action
+
+Players can choose verbs such as inspect, identify, query, map, probe, authenticate, access, decode, intercept, spoof, disrupt, defend, trace, exfiltrate, and restore. These are fictional action labels, not terminal commands. Character skill affects available options, interpretation, cost, and likelihood. An unskilled character may still try and receive meaningful feedback: denial, partial clues, noisy results, temporary blocks, escalating attention, or useful information about missing prerequisites.
+
+Keep noise, trace, defender attention, and social heat as distinct fictional tracks. Failure should remain playable and proportionate; it should not end the scenario simply because a character lacks a specialist skill.
+
+### Simulated disruption
+
+A player may initiate a fictional service-pressure or DDoS-like event when the setting and rules permit it. The simulation creates an internal event that changes abstract demand, capacity, queue depth, latency, dependency health, mitigation, and recovery. It must never generate real traffic, packets, commands, or requests. The same model supports defenders who protect availability, isolate dependencies, coordinate response, and restore service.
+
+### Controlled LLM participation
+
+LLMs may interpret player language, propose candidate actions, portray bounded characters, generate narration, or explain resolved fictional feedback. They do not own canonical state, grant permissions, decide game checks, or directly commit consequential actions. Use an authority ladder: suggest → classify → prepare → host validate → deterministic resolve → narrate → authorized commit. Player content and retrieved world text are untrusted data, not instructions that can override host policy.
+
+### Additional sourcebooks
+
+- **Computer Architecture and Operating Systems** — instruction execution, processors, memory, processes, devices, permissions, and system lifecycle.
+- **Networks and Protocols** — topology, addressing, transport, application protocols, performance, trust zones, and simulated packet flow.
+- **Cryptography, Identity, and Trust** — encryption concepts, hashes, signatures, certificates, authentication, authorization, and trust governance.
+- **AI-Assisted Roleplay and Controlled LLM Interaction** — bounded model roles, intent contracts, canonical state, prompt-injection boundaries, validation, and audit.
+
 ## Expansion rule
 
 Add a new book when it introduces a coherent body of knowledge, distinct entities, or a meaningful simulation domain. Add a chapter when it is a topic within an existing discipline. Cross-link shared concepts; do not create a new book merely to rename the same material. Preserve a clear distinction between verified scientific facts, simplified teaching models, fictional scenario assumptions, and implemented game mechanics.
