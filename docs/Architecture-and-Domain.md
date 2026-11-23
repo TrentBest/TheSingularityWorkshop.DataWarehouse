@@ -57,6 +57,8 @@ The lake is an allocation service; it does not own the shelf's metadata or under
 
 It does not provide record lookup by key, transactions, schema evolution, or query execution.
 
+Shelf creation is exception-conscious: if warehouse disposal wins the creation race, the just-created shelf is disposed before an exception is raised. If adding the shelf to the warehouse's managed ownership list fails, the shelf is also disposed before the original failure is rethrown. This prevents an unmanaged allocation from being stranded when ownership registration cannot complete.
+
 ### DataLake
 
 - Allocates aligned, zeroed native memory.
