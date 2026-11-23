@@ -37,6 +37,13 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | SURPS components and electronic devices | Implemented (educational domain sourcebook) | Passive and semiconductor devices, integrated circuits, sensors, actuators, boards, interfaces, lifecycle, and failure concepts |
 | SURPS digital logic and circuitry | Implemented (educational domain sourcebook) | Components, switching, Boolean logic, combinational and sequential circuits, clocks, memory, state machines, and conceptual labs |
 | SURPS cyber operations and intrusion simulations | Implemented (safe fictional scenario sourcebook) | Abstract access, interception, exploit classes, DoS effects, detection, incident response, evidence, and recovery; excludes real-target procedures and executable attack techniques |
+| SURPS Matrix roleplaying setting | Implemented (genre setting sourcebook) | Original layered-reality campaign model, factions, institutions, world truth, evidence, and simulation hooks |
+| SURPS Game Master's Scenario Workshop | Implemented (GM craft sourcebook) | Scenario packets, causal chains, scene design, operational realism, clue provenance, clocks, consequences, and AI boundaries |
+| SURPS hacking as roleplaying gameplay | Implemented (fictional action sourcebook) | Player computer-action vocabulary, skill-based outcomes, playable failure, separate noise/trace/attention/heat, and internal-only simulated service pressure |
+| SURPS computer architecture and operating systems | Implemented (educational domain sourcebook) | Processor, memory, OS responsibilities, processes, permissions, lifecycle, and failure concepts |
+| SURPS networks and protocols | Implemented (educational domain sourcebook) | Network topology, layered communication, addressing, transport, performance, trust, and synthetic simulation |
+| SURPS cryptography, identity, and trust | Implemented (educational domain sourcebook) | Confidentiality, integrity, cryptographic primitives, certificates, authentication, authorization, and trust governance |
+| SURPS AI-assisted roleplay and controlled LLM interaction | Implemented (interaction-governance sourcebook) | Bounded LLM roles, intent contracts, host authority ladder, canonical state, untrusted context, validation, and audit |
 | Automated diagram generation / stale-output gate | Planned | No repository-wide generator or completeness gate is claimed today |
 
 ## Visual provenance
