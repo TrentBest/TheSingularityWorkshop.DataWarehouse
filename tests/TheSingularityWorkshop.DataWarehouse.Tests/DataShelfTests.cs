@@ -637,6 +637,28 @@ public sealed class DataShelfTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new DataWarehouse(8192, 4096));
     }
 
+
+    [Fact]
+    public void TryGetHandle_ResolvesLiveDirtySlotsAndRejectsFreedSlots()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<Record>(4);
+        Assert.True(shelf.TryAllocate(out var original));
+
+        Span<int> dirtySlots = stackalloc int[4];
+        Assert.Equal(1, shelf.CopyDirtySlots(dirtySlots));
+        Assert.Equal(original.Slot, dirtySlots[0]);
+
+        Assert.True(shelf.TryGetHandle(dirtySlots[0], out var resolved));
+        Assert.Equal(original, resolved);
+
+        Assert.True(shelf.TryFree(original));
+        Assert.False(shelf.TryGetHandle(original.Slot, out var freed));
+        Assert.True(freed.IsDefault);
+        Assert.False(shelf.TryGetHandle(-1, out _));
+        Assert.False(shelf.TryGetHandle(shelf.Capacity, out _));
+    }
+
     private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)
     {
         shelf.GetRef(handle).Id = value;
