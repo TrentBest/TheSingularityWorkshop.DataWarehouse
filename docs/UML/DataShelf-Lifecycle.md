@@ -31,7 +31,10 @@ sequenceDiagram
     Caller->>Shelf: TryFree(handle)
     Shelf->>Shelf: Validate liveness
     Shelf->>Bits: Clear alive and dirty bits
-    Shelf->>Shelf: Increment generation; push slot to free stack
+    alt Generation below int.MaxValue
+        Shelf->>Shelf: Increment generation; push slot to free stack
+    else Generation exhausted
+        Shelf->>Shelf: Retire slot permanently
     Shelf-->>Caller: true
 ```
 
@@ -43,14 +46,14 @@ sequenceDiagram
 | Allocate slot | true | true | unchanged |
 | Mutable GetRef | unchanged | true | unchanged |
 | MarkClean succeeds | unchanged | false | unchanged |
-| Free live slot | false | false | incremented; wraps to 1 after int.MaxValue |
+| Free live slot below generation limit | false | false | incremented; slot returns to free stack |\n| Free live slot at int.MaxValue | false | false | unchanged; slot is permanently retired |
 | Reallocate freed slot | true | true | uses current generation |
 
 ## 03 Read the diagram correctly
 
 - The shelf, not the caller, owns the slot bitmaps and free stack.
 - A mutable reference marks dirty when obtained, not when an assignment is later performed.
-- Freeing invalidates the old handle before the slot can be safely reused through a newly generated handle.
+- Freeing invalidates the old handle before the slot can be safely reused through a newly generated handle.\n- A slot at generation int.MaxValue is retired and is not returned to the free stack; generations never wrap.
 - The diagram omits exceptional branches for invalid handles, exhaustion, and disposal; see the [DataShelf API contract](../api/DataShelf.md).
 
 ## 04 Provenance and regeneration
@@ -60,4 +63,4 @@ sequenceDiagram
 - **Verification:** compare each operation against the source and tests before changing the implementation.
 - **Performance:** this is an explanatory sequence, not benchmark evidence.
 
-<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop avatar" width="200" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop" width="200" /></p>
