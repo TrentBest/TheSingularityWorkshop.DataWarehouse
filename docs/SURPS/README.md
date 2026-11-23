@@ -31,7 +31,7 @@ LOD is a detail-selection mechanism, not a claim that every setting progresses t
 |---|---|
 | [The Warehouse Across Time and Space](The-Warehouse-Across-Time-and-Space.md) | Physical goods, materials, stockpiles, archives, depots, cold chains, logistics, and non-modern civilizations |
 | [The Data Center Across Time and Space](The-Data-Center-Across-Time-and-Space.md) | Information storage and processing from human memory and physical media through mechanical, electronic, networked, and speculative systems |
-| [Storage Environments and Extreme Facilities](Storage-Environments-and-Extreme-Facilities.md) | Underground, underwater, polar, desert, airborne, orbital, interplanetary, mobile, hostile, and unusual storage contexts |
+| [Storage Environments and Extreme Facilities](Storage-Environments-and-Extreme-Facilities.md) | Underground, underwater, polar, desert, airborne, orbital, interplanetary, mobile, hostile, and unusual storage contexts |\n| [Warehouse and Data-Center Archetypes](Warehouse-and-Data-Center-Archetypes.md) | Reusable facility patterns spanning household reserves, granaries, depots, archives, computing centers, remote outposts, and off-world knowledge cores |
 
 ## Shared sourcebook grammar
 
