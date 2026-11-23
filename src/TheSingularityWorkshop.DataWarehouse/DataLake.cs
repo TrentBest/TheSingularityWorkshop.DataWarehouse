@@ -219,7 +219,7 @@ internal sealed unsafe class DataLakeRegion : IDisposable
     {
         ThrowIfDisposed();
         var desiredPages = Math.Max(requiredPages, alignmentPages);
-        var desiredOrder = BitOperations.Log2((uint)(desiredPages - 1)) + (desiredPages == 1 ? 0 : 1);
+        var desiredOrder = DataLakeSizing.CalculateBuddyOrder(desiredPages);
         for (var candidateOrder = desiredOrder; candidateOrder <= MaxOrder; candidateOrder++)
         {
             var free = _freeBlocks[candidateOrder];
