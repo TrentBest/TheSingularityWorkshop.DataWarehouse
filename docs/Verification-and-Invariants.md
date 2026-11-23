@@ -110,13 +110,13 @@ Concurrency stress tests are not appropriate until a concurrency contract is sel
 
 ## 05 Latest CI evidence
 
-The shared-page allocator and shelf-growth implementation was built and tested on .NET 10 at commit `cf3eb2723b6c442584b32e56e494321f311589c9`:
+The shared-page allocator and shelf-growth implementation was built and tested on .NET 10 at commit `c6f2abe74b7918d4d7323fe062fca3bbf5a3c20b`:
 
-- Ubuntu latest: 50 passed, 0 failed, 0 skipped.
-- Windows latest: 50 passed, 0 failed, 0 skipped.
+- Ubuntu latest: 55 passed, 0 failed, 0 skipped.
+- Windows latest: 55 passed, 0 failed, 0 skipped.
 - Sith branch-policy workflow: passed for the same commit.
 
-Subsequent commits in this documentation pass changed only documentation/inventory content; no source or test files changed after that verified code/test tree.
+Subsequent commits changed only documentation/inventory content; the source and test tree is unchanged from the verified revision.
 
 ## 06 Evidence rules
 
