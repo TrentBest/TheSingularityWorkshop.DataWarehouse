@@ -6,15 +6,16 @@
 
 DataWarehouse is a low-level, in-process storage library for fixed-size unmanaged records. Its domain is the controlled lifecycle of record storage: reserve memory, address slots, identify live records, track changes, reclaim slots, and release allocations.
 
-This document defines the vocabulary and responsibility boundaries of the current implementation. It does not describe a future database, persistence engine, or application service.
+This document defines the vocabulary and responsibility boundaries of the current implementation. It does not describe a database, persistence engine, or application service.
 
 ## 01 Domain vocabulary
 
 | Term | Meaning | Current representation |
 |---|---|---|
 | Warehouse | Aggregate owner and shelf factory | `DataWarehouse` |
-| Lake | Native allocation boundary and byte accounting | `DataLake` |
-| Shelf | Fixed-capacity region for one unmanaged type | `DataShelf<T>` |
+| Lake | Shared backing regions, page allocation/reclamation, and byte accounting | `DataLake` |
+| Region | One aligned native backing allocation divided into buddy-managed page blocks | `DataLakeRegion` |
+| Shelf | Dynamically growable typed slot space backed by one contiguous page run at a time | `DataShelf<T>` |
 | Record | One fixed-size `T` payload | `sizeof(T)` bytes |
 | Slot / bay | One position in a shelf | Integer index from `0` through `Capacity - 1` |
 | Handle | Validated identity for a live slot incarnation | `DataHandle(ShelfId, Slot, Generation)` |
@@ -23,7 +24,7 @@ This document defines the vocabulary and responsibility boundaries of the curren
 | Alive state | Whether a slot currently contains an allocated record | External bitmap |
 | Dirty state | Whether a slot requires downstream processing/acknowledgement | External bitmap |
 | Free stack | Available slot indexes | Managed integer array + count |
-| Allocation extent | Rounded native byte reservation for a shelf | `nuint` stored as shelf allocation size |
+| Allocation extent | Power-of-two buddy block assigned to a shelf | Internal region/start-page/order allocation token |
 
 A handle is a storage identity, not an object reference, authorization token, persistence key, or globally stable identifier.
 
@@ -34,7 +35,7 @@ flowchart TD
     W[DataWarehouse] -->|owns| L[DataLake]
     W -->|creates and tracks| S1[DataShelf<T>]
     S1 -->|requests allocation from| L
-    S1 --> P[Aligned native record region]
+    L --> R[Shared aligned backing regions]\n    R --> P[Buddy-managed page blocks]\n    S1 -->|owns one contiguous page run| P
     S1 --> F[Free-slot stack]
     S1 --> G[Generation array]
     S1 --> A[Alive bitmap]
@@ -42,7 +43,7 @@ flowchart TD
     H[DataHandle] -->|identifies shelf + slot + generation| S1
 ```
 
-The lake is an allocation service; it does not own the shelf's metadata or understand records. Each shelf owns one independent native allocation and its managed metadata arrays. The warehouse tracks created shelves so aggregate disposal can release them.
+The lake owns native backing regions shared by multiple shelves. It allocates contiguous page blocks from those regions with a buddy allocator; it does not own shelf metadata or understand records. Each shelf owns one active page-run allocation token and its managed slot metadata. The warehouse tracks created shelves so aggregate disposal can release every page run before closing the lake.
 
 ## 03 Public type responsibilities
 
@@ -77,7 +78,7 @@ It does not suballocate records within one shared arena or reclaim individual sl
 - Tracks alive and dirty state in separate bitmaps.
 - Returns mutable refs through `GetRef` and read-only refs through `Read`.
 - Enumerates dirty slot indexes into caller-owned memory.
-- Owns and releases its native allocation.
+- Owns and returns its page-run allocation to the lake.
 
 ### DataHandle and ShelfIdentity
 
@@ -91,7 +92,7 @@ For a slot `i` in a shelf:
 recordAddress(i) = baseAddress + i * sizeof(T)
 ```
 
-The shelf requests `capacity × sizeof(T)` bytes, then rounds the allocation extent to a multiple of the configured page-size alignment. The allocation base is aligned; individual records are not separately padded to page or cache-line boundaries. A record may span more than one configured page-size unit.
+The shelf requests `capacity × sizeof(T)` bytes from the lake. The buddy allocator assigns a power-of-two block of base pages large enough for both the payload and requested alignment. The allocation base is aligned; individual records are not separately padded to page or cache-line boundaries. A record may span more than one page. The buddy block may include internal padding beyond the requested payload.
 
 Record payloads are unmanaged and contiguous. Free-stack entries, generations, alive bits, and dirty bits are side-band metadata; they are not stored inside `T`.
 
@@ -103,20 +104,20 @@ The current metadata cost is approximately:
 - the same bitmap size for dirty bits;
 - array headers and alignment overhead managed by the CLR.
 
-This excludes object headers, allocator overhead, and the native allocation's rounded padding. It is a structural estimate, not a measured footprint.
+This excludes object headers, allocator overhead, and buddy-block padding. It is a structural estimate, not a measured footprint. A shelf growth operation also temporarily holds both old and replacement page runs while copying.
 
 ## 05 Lifecycle model
 
 1. Warehouse creates a shelf.
 2. Shelf allocates metadata arrays and initializes every generation to 1.
-3. Lake reserves and clears the rounded native extent.
+3. Lake finds or creates a shared region, allocates a buddy page block, and clears the block before returning it to the shelf.
 4. Allocation pops a slot, marks it alive and dirty, clears its record bytes, and returns a handle.
 5. Mutable access validates the handle and marks dirty before exposing a ref.
 6. Read-only access validates the handle but does not change dirty state.
 7. A consumer acknowledges processing with `MarkClean`.
 8. Free clears alive and dirty state, decrements counters, advances generation, and returns the slot to the free stack.
 9. A slot at generation `int.MaxValue` is retired instead of being returned to the free stack.
-10. Shelf disposal releases the native allocation once; warehouse disposal performs this for every registered shelf before closing the lake.
+10. `EnsureCapacity` may allocate a larger replacement block, copy the existing payload, preserve handle generations and bitmaps, then return the old block to the lake. The caller must quiesce all refs and raw addresses during growth.\n11. Shelf disposal returns its page block once; warehouse disposal performs this for every registered shelf before closing the lake.
 
 ## 06 Dirty state is a signal, not a journal
 
@@ -136,7 +137,7 @@ Consumers must own the scheduling, acknowledgement, retry, and synchronization p
 
 The current shelf is not thread-safe for concurrent mutation. Its free stack, counters, generations, and bitmaps are ordinary mutable state. The intended performance model is independent shelf ownership: assign separate shelves to workers, or externally synchronize shared access.
 
-Returned refs and `BaseAddress` can outlive the method that exposed them. No method-level lock can make an escaped ref safe after disposal. The caller must ensure that all refs and raw addresses are no longer used before freeing or disposing a shelf.
+Returned refs and `BaseAddress` can outlive the method that exposed them. No method-level lock can make an escaped ref safe after disposal or growth. The caller must ensure that all refs and raw addresses are no longer used before growing, freeing, or disposing a shelf. Lake allocation/reclamation is synchronized separately from record access.
 
 ## 08 Deliberate non-goals
 
@@ -145,7 +146,7 @@ The current domain does not include:
 - Variable-size objects, strings, blobs, or arbitrary object graphs.
 - Key/value indexes, queries, joins, transactions, or relational semantics.
 - Serialization, persistence, snapshots, crash recovery, replication, or durability.
-- Shared-arena suballocation, relocation, compaction, or automatic growth.
+- Variable-size records, relocation of individual records, or compaction. Shelf-capacity growth is implemented, but it relocates the shelf's contiguous page run and requires quiescent access.
 - Internal work queues, subscriptions, change journals, or event delivery.
 - Internal locks, lock-free shared mutation, or automatic worker scheduling.
 - Authentication, authorization, encryption, or security policy.
