@@ -110,6 +110,7 @@ The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingula
 - [DataLake region-allocation lifecycle](docs/UML/DataLake-Region-Allocation.md)
 - [DataLake region-allocation lifecycle](docs/UML/DataLake-Region-Allocation.md)
 - [DataHandle identity and validity contract](docs/api/DataHandle.md)
+- [Fixed-record design and memory patterns](docs/Record-Design-and-Memory-Patterns.md)
 - [DataShelf API and operational contract](docs/api/DataShelf.md)
 - [Verification plan and invariants](docs/Verification-and-Invariants.md)
 - [DataShelf lifecycle sequence](docs/UML/DataShelf-Lifecycle.md)
