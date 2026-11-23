@@ -82,8 +82,9 @@ public sealed unsafe class DataLake : IDisposable
             }
 
             var regionPages = NextPowerOfTwo(Math.Max(_regionPageCount, Math.Max(requiredPages, alignmentPages)));
+            var regionBytes = checked((long)PageSize * regionPages);
+            var nextReservedBytes = checked(ReservedBytes + regionBytes);
             var newRegion = new DataLakeRegion(PageSize, regionPages);
-            var nextReservedBytes = checked(ReservedBytes + checked((long)newRegion.ReservedBytes));
             try
             {
                 _regions.Add(newRegion);
@@ -105,7 +106,16 @@ public sealed unsafe class DataLake : IDisposable
     private DataLakeAllocation CreateAllocation(DataLakeRegion region, int startPage, int order)
     {
         var byteCount = region.GetBlockByteCount(order);
-        var nextAllocatedBytes = checked(AllocatedBytes + checked((long)byteCount));
+        long nextAllocatedBytes;
+        try
+        {
+            nextAllocatedBytes = checked(AllocatedBytes + checked((long)byteCount));
+        }
+        catch
+        {
+            region.Free(startPage, order);
+            throw;
+        }
         var pointer = region.GetPointer(startPage);
         NativeMemory.Clear(pointer, byteCount);
         Interlocked.Exchange(ref _allocatedBytes, nextAllocatedBytes);
