@@ -107,6 +107,7 @@ The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingula
 
 - [Architecture and complete domain model](docs/Architecture-and-Domain.md)
 - [DataLake allocation and ownership contract](docs/api/DataLake.md)
+- [DataHandle identity and validity contract](docs/api/DataHandle.md)
 - [DataShelf API and operational contract](docs/api/DataShelf.md)
 - [Verification plan and invariants](docs/Verification-and-Invariants.md)
 - [DataShelf lifecycle sequence](docs/UML/DataShelf-Lifecycle.md)
