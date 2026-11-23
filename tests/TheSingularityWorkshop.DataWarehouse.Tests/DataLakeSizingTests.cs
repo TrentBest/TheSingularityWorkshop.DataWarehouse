@@ -1,4 +1,5 @@
 using TheSingularityWorkshop.DataWarehouse;
+using Xunit;
 
 namespace TheSingularityWorkshop.DataWarehouse.Tests;
 
