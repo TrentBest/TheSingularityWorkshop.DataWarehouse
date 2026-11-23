@@ -34,6 +34,7 @@ LOD is a detail-selection mechanism, not a claim that every setting progresses t
 | [Storage Environments and Extreme Facilities](Storage-Environments-and-Extreme-Facilities.md) | Underground, underwater, polar, desert, airborne, orbital, interplanetary, mobile, hostile, and unusual storage contexts |
 | [Warehouse and Data-Center Archetypes](Warehouse-and-Data-Center-Archetypes.md) | Reusable facility patterns spanning household reserves, granaries, depots, archives, computing centers, remote outposts, and off-world knowledge cores |
 | [SURPS Facility Atlas — Named Sites Across Time and Space](Facility-Atlas-Named-Sites-Across-Time-and-Space.md) | Eight LOD 3–4 constructed facilities with layouts, operating roles, dependencies, incident scenarios, and simulation hooks |
+| [SURPS Facility Diagrams — Plans, Flows, and Dependencies](Facility-Diagrams-Plans-Flows-and-Dependencies.md) | Conceptual compound plans, cargo and data flows, infrastructure dependencies, failure propagation, and diagram authoring rules |
 
 ## Shared sourcebook grammar
 
