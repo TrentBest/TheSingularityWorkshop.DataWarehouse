@@ -41,7 +41,9 @@ This document maps the storage domain to properties that can be tested or otherw
 | DW-029 | Reclaimed buddy blocks remain reusable and fully coalesce | Randomized release and subsequent larger allocation | Stress over multiple region sizes |
 | DW-030 | Larger shelf alignment overrides are honored by the lake | 8 KiB override over 4 KiB base-page test | More alignment ratios and platform validation |
 | DW-031 | Dirty slot indexes can be resolved to current live handles | TryGetHandle test | Concurrent changes remain externally synchronized |
-| DW-032 | Individually disposed shelves unregister from warehouse ownership | ShelfCount lifecycle test | None identified for single-threaded lifecycle |\n| DW-033 | Independent shelves can be created and disposed concurrently | Parallel independent-shelf test | Higher-contention stress and long-duration soak |\n| DW-034 | Warehouse disposal racing shelf creation returns every page allocation | Warehouse dispose/create race test | Repeated stress runs and fault injection |
+| DW-032 | Individually disposed shelves unregister from warehouse ownership | ShelfCount lifecycle test | None identified for single-threaded lifecycle |
+| DW-033 | Independent shelves can be created and disposed concurrently | Parallel independent-shelf test | Higher-contention stress and long-duration soak |
+| DW-034 | Warehouse disposal racing shelf creation returns every page allocation | Warehouse dispose/create race test | Repeated stress runs and fault injection |
 
 ## 02 Required state relationships
 
