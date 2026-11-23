@@ -16,6 +16,7 @@ DataShelf<T> stores a fixed capacity of unmanaged records in page-aligned native
 - Alive and dirty counters.
 - The shelf identity used to reject handles from other shelves.
 - A public `BaseAddress` diagnostic property currently exposes the allocation address as `nint`; this is an unsafe escape hatch, not a supported record-access API. Never dereference it directly, retain it beyond shelf lifetime, or use it to bypass handle validation.
+- `AllocatedBytes` reports the shelf's rounded allocation extent. It remains the configured extent after disposal; use `DataLake.AllocatedBytes` to inspect currently outstanding native allocation bytes.
 
 The bitmaps are external to the stored T records. The shelf does not allocate a managed object for every record.
 
