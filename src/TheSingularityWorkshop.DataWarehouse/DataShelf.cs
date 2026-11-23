@@ -4,33 +4,35 @@ using System.Runtime.InteropServices;
 namespace TheSingularityWorkshop.DataWarehouse;
 
 /// <summary>
-/// A page-aligned, fixed-capacity shelf of unmanaged values with external alive and dirty bitmaps.
+/// A dynamically growable typed shelf whose contiguous allocation is carved from shared DataLake regions.
 /// </summary>
 /// <typeparam name="T">The unmanaged record stored in every slot.</typeparam>
 /// <remarks>
 /// Resolving a valid handle to a slot is O(1): validate three integers, then calculate
 /// base address + slot * sizeof(T). Allocation uses a free-slot stack; no per-record objects
-/// or dictionary lookup are required on the access path.
+/// or dictionary lookup are required on the access path. Capacity growth relocates the shelf
+/// allocation and therefore requires the caller to quiesce all refs and raw addresses first.
 /// </remarks>
 public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
 {
     private readonly DataLake _lake;
-    private readonly void* _baseAddress;
-    private readonly nuint _allocationSize;
-    private readonly int[] _freeSlots;
-    private readonly int[] _generations;
-    private readonly ulong[] _alive;
-    private readonly ulong[] _dirty;
+    private DataLakeAllocation _allocation;
+    private void* _baseAddress;
+    private nuint _allocationSize;
+    private int[] _freeSlots;
+    private int[] _generations;
+    private ulong[] _alive;
+    private ulong[] _dirty;
     private int _freeCount;
     private int _disposed;
 
     public int Id { get; }
-    public int Capacity { get; }
+    public int Capacity { get; private set; }
     public int PageSize { get; }
     public int ElementSize => sizeof(T);
     public int AliveCount { get; private set; }
     public int DirtyCount { get; private set; }
-    public nint BaseAddress => (nint)_baseAddress;
+    public nint BaseAddress => IsDisposed ? 0 : (nint)_baseAddress;
     public long AllocatedBytes => checked((long)_allocationSize);
 
     internal DataShelf(DataLake lake, int capacity, int pageSize)
@@ -46,14 +48,12 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         Id = ShelfIdentity.Next();
 
         var requestedBytes = checked((nuint)capacity * (nuint)sizeof(T));
-        var remainder = requestedBytes % (nuint)pageSize;
-        _allocationSize = remainder == 0 ? requestedBytes : checked(requestedBytes + (nuint)pageSize - remainder);
+        var bitmapLength = checked((int)(((long)capacity + 63) / 64));
 
         // Allocate all managed metadata before acquiring native memory. If any managed
-        // allocation fails, construction exits without leaving an unmanaged allocation behind.
+        // allocation fails, construction exits without leaving a native allocation behind.
         _freeSlots = new int[capacity];
         _generations = new int[capacity];
-        var bitmapLength = checked((int)(((long)capacity + 63) / 64));
         _alive = new ulong[bitmapLength];
         _dirty = new ulong[bitmapLength];
 
@@ -64,9 +64,63 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         }
         _freeCount = capacity;
 
-        // This is the final potentially-failing acquisition in construction. No managed
-        // allocations occur after it, so successful allocation cannot be stranded by setup.
-        _baseAddress = lake.AllocateAligned(requestedBytes, (nuint)pageSize);
+        // The lake owns the backing region; this shelf owns only its allocated page run.
+        _allocation = lake.AllocateAligned(requestedBytes, (nuint)Math.Max(pageSize, lake.PageSize));
+        _baseAddress = _allocation.Pointer;
+        _allocationSize = _allocation.ByteCount;
+    }
+
+    /// <summary>
+    /// Ensures at least the requested number of slots. Existing handles remain valid, but all
+    /// refs and raw addresses obtained before growth become invalid and must no longer be used.
+    /// The caller must ensure exclusive, quiescent access for the duration of this operation.
+    /// </summary>
+    public void EnsureCapacity(int minimumCapacity)
+    {
+        ThrowIfDisposed();
+        if (minimumCapacity <= 0)
+            throw new ArgumentOutOfRangeException(nameof(minimumCapacity));
+        if (minimumCapacity <= Capacity) return;
+
+        var newFreeSlots = new int[minimumCapacity];
+        Array.Copy(_freeSlots, newFreeSlots, _freeCount);
+
+        var newGenerations = new int[minimumCapacity];
+        Array.Copy(_generations, newGenerations, Capacity);
+        Array.Fill(newGenerations, 1, Capacity, minimumCapacity - Capacity);
+
+        var newBitmapLength = checked((int)(((long)minimumCapacity + 63) / 64));
+        var newAlive = new ulong[newBitmapLength];
+        var newDirty = new ulong[newBitmapLength];
+        Array.Copy(_alive, newAlive, _alive.Length);
+        Array.Copy(_dirty, newDirty, _dirty.Length);
+
+        var requestedBytes = checked((nuint)minimumCapacity * (nuint)sizeof(T));
+        var replacement = _lake.AllocateAligned(requestedBytes, (nuint)Math.Max(PageSize, _lake.PageSize));
+
+        // New lake allocations are zeroed. Copy the old payload bytes, preserving live records
+        // and the contents of free slots while leaving newly added capacity zero-initialized.
+        var oldPayloadBytes = checked((long)((nuint)Capacity * (nuint)sizeof(T)));
+        Buffer.MemoryCopy(_baseAddress, replacement.Pointer, checked((long)replacement.ByteCount), oldPayloadBytes);
+
+        var nextFreeCount = _freeCount;
+        for (var slot = minimumCapacity - 1; slot >= Capacity; slot--)
+            newFreeSlots[nextFreeCount++] = slot;
+
+        var previousAllocation = _allocation;
+        _allocation = replacement;
+        _baseAddress = replacement.Pointer;
+        _allocationSize = replacement.ByteCount;
+        _freeSlots = newFreeSlots;
+        _generations = newGenerations;
+        _alive = newAlive;
+        _dirty = newDirty;
+        _freeCount = nextFreeCount;
+        Capacity = minimumCapacity;
+
+        // The shelf now points at the replacement. Release the old run only after committing
+        // the new pointer and metadata so an allocation failure cannot strand the live shelf.
+        _lake.FreeAligned(previousAllocation);
     }
 
     public bool TryAllocate(out DataHandle handle)
@@ -177,7 +231,9 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
-        _lake.FreeAligned(_baseAddress, _allocationSize);
+        _lake.FreeAligned(_allocation);
+        _allocation = default;
+        _baseAddress = null;
         AliveCount = 0;
         DirtyCount = 0;
         GC.SuppressFinalize(this);
