@@ -81,7 +81,7 @@ It does not interpret record types, handles, alive/dirty state, or domain meanin
 - Validates handles using shelf identity, bounds, generation, and alive state.
 - Tracks alive and dirty state in separate bitmaps.
 - Returns mutable refs through `GetRef` and read-only refs through `Read`.
-- Enumerates dirty slot indexes into caller-owned memory.
+- Enumerates dirty slot indexes into caller-owned memory and resolves current live handles with `TryGetHandle`.
 - Grows with `EnsureCapacity`, allocating a replacement page run and preserving record bytes, handles, generations, and side-band state.
 - Returns its page-run allocation to the lake on disposal.
 
