@@ -67,14 +67,8 @@ public sealed unsafe class DataLake : IDisposable
                 throw new ArgumentOutOfRangeException(nameof(alignment), "Alignment must be a power of two and at least pointer-sized.");
 
             var effectiveAlignment = alignment > (nuint)PageSize ? alignment : (nuint)PageSize;
-            var requiredPagesNative = byteCount / (nuint)PageSize;
-            if (byteCount % (nuint)PageSize != 0) requiredPagesNative++;
-            var alignmentPagesNative = effectiveAlignment / (nuint)PageSize;
-            if (requiredPagesNative > int.MaxValue || alignmentPagesNative > int.MaxValue)
-                throw new OutOfMemoryException("The requested allocation exceeds the supported page-index range.");
-
-            var requiredPages = (int)requiredPagesNative;
-            var alignmentPages = (int)alignmentPagesNative;
+            var requiredPages = DataLakeSizing.CalculateRequiredPages(byteCount, PageSize);
+            var alignmentPages = DataLakeSizing.CalculateRequiredPages(effectiveAlignment, PageSize);
 
             foreach (var region in _regions)
             {
@@ -148,14 +142,7 @@ public sealed unsafe class DataLake : IDisposable
         Interlocked.Exchange(ref _reservedBytes, 0);
     }
 
-    private static int NextPowerOfTwo(int value)
-    {
-        if (value <= 1) return 1;
-        var order = BitOperations.Log2((uint)(value - 1)) + 1;
-        if (order >= 31)
-            throw new OutOfMemoryException("The requested data-lake region exceeds the supported page-index range.");
-        return 1 << order;
-    }
+    private static int NextPowerOfTwo(int value) => DataLakeSizing.NextPowerOfTwo(value);
 
     /// <summary>Closes the lake to new allocations and releases regions after all outstanding shelves return their pages.</summary>
     public void Dispose()
