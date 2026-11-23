@@ -12,7 +12,12 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: DataWarehouse Tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -35,6 +40,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: datawarehouse-test-results
+          name: datawarehouse-test-results-${{ matrix.os }}
           path: '**/datawarehouse-tests.trx'
           if-no-files-found: warn
