@@ -14,17 +14,18 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | View / artifact | Status | Purpose / evidence |
 |---|---|---|
 | README / quick start | Implemented | Product identity, rationale, example, scope, verification path |
-| README architecture illustration | Source-checked conceptual view | Ownership path, typed shelves, slots, side-band tracking; not byte-accurate |
-| README handle lifecycle illustration | Source-checked | Allocation, dirty tracking, clean, free, and generation-advancing reuse |
+| Architecture and domain model | Implemented (source-checked) | Vocabulary, ownership topology, type responsibilities, memory model, lifecycle, concurrency, non-goals |
+| DataLake allocation contract | Implemented (source-checked) | Aligned allocation, accounting, clearing, release, disposal, synchronization limits |
 | DataShelf API and operational contract | Implemented | Operation semantics, failure behavior, complexity, tests, concurrency caveat |
 | Class/type diagram | Planned | Show public types and ownership without inventing relationships |
-| Type neighborhood pages | Planned | Target type centered, consumers above, dependencies below |
+| Type neighborhood pages | Partial | DataLake and DataShelf contracts documented; additional member-level reference coverage can follow |
 | DataShelf lifecycle sequence | Source-checked | Allocate, mutable access, dirty marking, clean, free, generation change |
 | Lifecycle/state transitions | Source-checked | Alive/dirty/generation changes for the current implementation |
 | Data-flow / memory-layout diagram | Source-checked conceptual view | README illustration; not a byte-accurate layout |
 | Use cases | Planned | Fixed-size records, dirty-slot processing, slot reuse |
-| Complexity and allocation analysis | Partial | DataShelf operations documented; other public types and empirical costs still need coverage |
-| Test traceability | Partial | Core invariants linked from API doc; full requirement-to-test matrix remains planned |
+| Complexity and allocation analysis | Partial | DataShelf operations and structural metadata costs documented; empirical costs remain in benchmark repository |
+| Verification plan and invariants | Implemented (coverage audit) | Domain invariants, current test evidence, explicit missing test matrix, completion gate |
+| Test traceability | Partial | Invariant-to-test matrix exists; dedicated tests are still needed for listed gaps |
 | Benchmark evidence | Implemented separately | Named workloads and CI artifacts live in the benchmark repository |
 | Deployment diagram | Not applicable | Current library is an in-process .NET component |
 | MicroBundle views | Not applicable | No MicroBundle dependency or contract in this repository |
