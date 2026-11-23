@@ -58,7 +58,7 @@ For every shelf at a quiescent point:
 - Every retired generation-exhausted slot is non-live and absent from the free stack.
 - Every returned handle identifies exactly one live shelf/slot incarnation.
 
-The quiescent-point qualification matters: the current implementation does not synchronize concurrent reads and writes of these structures.
+For every backing region:\n\n- Every page belongs to exactly one live allocation block or one free buddy block.\n- Free and allocated blocks do not overlap and together cover the region.\n- A block start is aligned to its power-of-two page extent.\n- No pair of same-order free buddy blocks remains uncoalesced.\n- `AllocatedBytes` equals the sum of live buddy-block extents; `ReservedBytes` equals the sum of region extents.\n\nThe quiescent-point qualification matters: the current implementation does not synchronize concurrent reads and writes of a shelf's slot structures.
 
 ## 03 Current automated test coverage
 
@@ -71,7 +71,7 @@ The current test suite exercises:
 - Stale generation rejection after slot reuse.
 - Capacity exhaustion and default failure handle.
 - Cross-shelf handle rejection.
-- Dirty slot enumeration with empty and undersized destinations and bitmap word-boundary capacities.
+- Dirty slot enumeration with empty, undersized, and exact-size destinations and bitmap word-boundary capacities.
 - Default and out-of-range handle rejection; live handle resolution from dirty slot indexes; shelf operations after disposal.
 - Rounded allocation extents and accounting.
 - Invalid page-size rejection.
@@ -82,7 +82,7 @@ The current test suite exercises:
 - Generation exhaustion and slot retirement.
 - Shared-region allocation, buddy coalescing, randomized non-overlapping allocations, freed-region reuse, cross-shelf stale-byte clearing, oversized backing regions, and deferred region disposal after lake closure.
 - Shelf capacity growth preserving existing handles, payloads, and side-band state across a bitmap-word boundary.
-- Larger shelf alignment overrides and growth rejection after lake closure.
+- Larger shelf alignment overrides and growth rejection after lake closure.\n- Random allocate/free interleaving across multiple regions with live allocation overlap checks.\n- Concurrent creation/disposal of independent shelves and aggregate disposal racing new shelf creation.
 
 See `tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs`. The test suite currently concentrates on DataShelf behavior; dedicated DataLake and DataWarehouse contract suites would make the type boundaries clearer.
 
