@@ -22,9 +22,9 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | DataShelf API and operational contract | Implemented | Operation semantics, dirty-slot-to-handle resolution, failure behavior, complexity, dynamic capacity growth, relocation/lifetime, tests, concurrency caveat |
 | Class/type diagram | Planned | Show public types and ownership without inventing relationships |
 | Type neighborhood pages | Partial | DataLake, DataHandle, and DataShelf contracts documented; DataWarehouse public factory/disposal contract is covered in the architecture page |
-| DataShelf lifecycle sequence | Source-checked | Allocate, mutable access, dirty marking, clean, free, generation change |
+| DataShelf lifecycle sequence | Source-checked | Allocate, mutable access, dirty marking, clean, free, generation change, and capacity growth |
 | Lifecycle/state transitions | Source-checked | Alive/dirty/generation changes for the current implementation |
-| Data-flow / memory-layout diagram | Source-checked conceptual view | README illustration; not a byte-accurate layout |
+| Data-flow / memory-layout diagram | Source-checked conceptual view | README illustration of shared regions, buddy page blocks, typed shelves, and side-band metadata; not a byte-accurate layout |
 | Use cases | Planned | Fixed-size records, dirty-slot processing, slot reuse |
 | Complexity and allocation analysis | Partial | DataShelf operations and structural metadata costs documented; empirical costs remain in benchmark repository |
 | Verification plan and invariants | Implemented (coverage audit) | Slot and allocator invariants, current test evidence, explicit missing test matrix, completion gate |
