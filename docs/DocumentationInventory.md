@@ -31,6 +31,7 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | SURPS domain sourcebooks | Implemented (growing collection) | Warehouse, data-center, extreme-environment, archetype, and eight-site LOD 3–4 facility-atlas coverage; separate from library implementation |
 | SURPS facility diagrams | Implemented (authored static Mermaid) | Conceptual site plans, operational flows, dependency maps, and failure propagation for six constructed settings; not engineering drawings |
 | SURPS facility scenario packs | Implemented (constructed scenario data) | Four facility packs with stock snapshots, staffing and authority, schedules, incidents, invariants, and outcome measures; values are illustrative |
+| SURPS scenario event catalog | Implemented (domain vocabulary) | Event families, preconditions, evidence, state-transition discipline, cross-domain sequences, invariants, failure chains, and measures; not a software event schema |
 | Automated diagram generation / stale-output gate | Planned | No repository-wide generator or completeness gate is claimed today |
 
 ## Visual provenance
