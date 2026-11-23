@@ -43,6 +43,13 @@ LOD is a detail-selection mechanism, not a claim that every setting progresses t
 | [Components and Electronic Devices](Components-and-Electronic-Devices.md) | Passive and semiconductor components, integrated circuits, sensors, actuators, boards, interfaces, lifecycle, and failure concepts |
 | [Digital Logic and Circuitry](Digital-Logic-and-Circuitry.md) | Physical-to-digital foundations, components, Boolean logic, combinational and sequential circuits, clocks, memory, and learning labs |
 | [Cyber Operations and Intrusion Simulations](Cyber-Operations-and-Intrusion-Simulations.md) | Safe fictional cyber missions, access and interception concepts, DoS simulation, detection, evidence, defense, and recovery |
+| [The Matrix — A Roleplaying Setting of Layered Reality](The-Matrix-Roleplaying-Setting.md) | Original cyberpunk / simulated-reality campaign setting, layered worlds, factions, institutions, truth ledger, and LOD guidance |
+| [The Game Master's Scenario Workshop](The-Game-Masters-Scenario-Workshop.md) | Scenario packets, causal design, scene construction, operational realism, clues, clocks, consequences, and bounded AI assistance |
+| [Hacking as Roleplaying Gameplay](Hacking-as-Roleplaying-Gameplay.md) | Player-facing fictional computer actions, skill gates, playable failures, noise/trace/attention/heat, and abstract service disruption |
+| [Computer Architecture and Operating Systems](Computer-Architecture-and-Operating-Systems.md) | Processor execution, memory hierarchy, operating systems, processes, permissions, lifecycle, and failure behavior |
+| [Networks and Protocols](Networks-and-Protocols.md) | Network topology, layered communication, addressing, transport, performance, trust, and synthetic network simulation |
+| [Cryptography, Identity, and Trust](Cryptography-Identity-and-Trust.md) | Encryption, hashing, signatures, certificates, authentication, authorization, trust, and defensive response |
+| [AI-Assisted Roleplay and Controlled LLM Interaction](AI-Assisted-Roleplay-and-Controlled-LLM-Interaction.md) | Bounded LLM roles, intent classification, authority ladder, canonical state, untrusted context, validation, and audit |
 
 ## Shared sourcebook grammar
 
