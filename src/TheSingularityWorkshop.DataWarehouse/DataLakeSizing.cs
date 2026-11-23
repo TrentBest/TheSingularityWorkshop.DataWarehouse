@@ -5,6 +5,16 @@ namespace TheSingularityWorkshop.DataWarehouse;
 /// <summary>Pure sizing and buddy-order calculations shared by the lake allocator.</summary>
 internal static class DataLakeSizing
 {
+    public static nuint CalculatePayloadBytes(nuint elementCount, nuint elementSize)
+    {
+        if (elementCount == 0)
+            throw new ArgumentOutOfRangeException(nameof(elementCount));
+        if (elementSize == 0)
+            throw new ArgumentOutOfRangeException(nameof(elementSize));
+
+        return checked(elementCount * elementSize);
+    }
+
     public static int CalculateRequiredPages(nuint byteCount, int pageSize)
     {
         if (byteCount == 0)
