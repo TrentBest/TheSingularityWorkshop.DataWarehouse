@@ -51,16 +51,19 @@ The quiescent-point qualification matters: the current implementation does not s
 The current test suite exercises:
 
 - Page-aligned base addresses.
-- Allocation, alive and dirty state, mutable access, and readback.
+- Allocation, zero initialization on new and reused slots, alive and dirty state, mutable access, and readback.
+- Read-only access preserving clean state; repeated mutable access and repeated clean transitions.
 - Clean and free transitions.
 - Stale generation rejection after slot reuse.
 - Capacity exhaustion and default failure handle.
 - Cross-shelf handle rejection.
-- Dirty slot enumeration.
+- Dirty slot enumeration with empty and undersized destinations and bitmap word-boundary capacities.
+- Default and out-of-range handle rejection; shelf operations after disposal.
 - Rounded allocation extents and accounting.
 - Invalid page-size rejection.
 - Records larger than the configured page size.
-- Exact-once shelf disposal and aggregate warehouse disposal.
+- Exact-once shelf disposal, post-disposal behavior, aggregate warehouse disposal, and mixed individual-shelf allocation accounting.
+- Warehouse default-page-size and shelf-capacity validation.
 - Generation exhaustion and slot retirement.
 - Lake disposal preventing new allocations while allowing existing shelves to release memory.
 
