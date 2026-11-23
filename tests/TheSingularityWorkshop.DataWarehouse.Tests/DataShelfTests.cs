@@ -522,6 +522,121 @@ public sealed class DataShelfTests
         Assert.Equal(address, second.BaseAddress);
     }
 
+
+    [Fact]
+    public void FreedPages_AreClearedBeforeAnotherShelfReusesThem()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        var first = warehouse.CreateShelf<Record>(1);
+        Assert.True(first.TryAllocate(out var firstHandle));
+        first.GetRef(firstHandle).Id = 0x5A5A5A5A;
+        var releasedAddress = first.BaseAddress;
+        first.Dispose();
+
+        using var second = warehouse.CreateShelf<Record>(1);
+        Assert.Equal(releasedAddress, second.BaseAddress);
+        Assert.True(second.TryAllocate(out var secondHandle));
+        Assert.Equal(0, second.Read(secondHandle).Id);
+    }
+
+    [Fact]
+    public void BuddyAllocator_RandomizedAllocationsDoNotOverlapAndFullyCoalesce()
+    {
+        using var warehouse = new DataWarehouse(4096, 1024 * 1024);
+        var random = new Random(19771123);
+        var shelves = new List<DataShelf<Record>>();
+        var ranges = new List<(nuint Start, nuint End)>();
+
+        for (var i = 0; i < 80; i++)
+        {
+            var shelf = warehouse.CreateShelf<Record>(random.Next(1, 300));
+            var start = (nuint)shelf.BaseAddress;
+            var end = checked(start + (nuint)shelf.AllocatedBytes);
+
+            foreach (var existing in ranges)
+                Assert.False(start < existing.End && existing.Start < end, "Live shelf allocations must never overlap.");
+
+            ranges.Add((start, end));
+            shelves.Add(shelf);
+        }
+
+        foreach (var shelf in shelves.OrderBy(_ => random.Next()))
+            shelf.Dispose();
+
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+        Assert.Equal(warehouse.Lake.ReservedBytes, warehouse.Lake.FreeBytes);
+
+        using var probe = warehouse.CreateShelf<Record>(1024);
+        Assert.Equal(1, warehouse.Lake.RegionCount);
+    }
+
+    [Fact]
+    public void EnsureCapacity_CrossesBitmapWordsAndPreservesDirtyState()
+    {
+        using var warehouse = new DataWarehouse(4096, 65536);
+        using var shelf = warehouse.CreateShelf<Record>(65);
+        var handles = new DataHandle[65];
+
+        for (var i = 0; i < handles.Length; i++)
+        {
+            Assert.True(shelf.TryAllocate(out handles[i]));
+            shelf.GetRef(handles[i]).Id = i + 100;
+            if (i % 2 == 0)
+                Assert.True(shelf.MarkClean(handles[i]));
+        }
+
+        shelf.EnsureCapacity(129);
+
+        Assert.Equal(65, shelf.AliveCount);
+        Assert.Equal(32, shelf.DirtyCount);
+        for (var i = 0; i < handles.Length; i++)
+        {
+            Assert.True(shelf.IsAlive(handles[i]));
+            Assert.Equal(i % 2 != 0, shelf.IsDirty(handles[i]));
+            Assert.Equal(i + 100, shelf.Read(handles[i]).Id);
+        }
+
+        Span<int> dirty = stackalloc int[32];
+        Assert.Equal(32, shelf.CopyDirtySlots(dirty));
+        for (var i = 0; i < dirty.Length; i++)
+            Assert.Equal((i * 2) + 1, dirty[i]);
+
+        Assert.True(shelf.TryAllocate(out var firstAdded));
+        Assert.Equal(65, firstAdded.Slot);
+    }
+
+    [Fact]
+    public void ShelfAlignmentOverride_CanExceedLakeBasePageSize()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<Record>(1, pageSize: 8192);
+
+        Assert.Equal(0, (long)shelf.BaseAddress % 8192);
+        Assert.True(shelf.AllocatedBytes >= 8192);
+    }
+
+    [Fact]
+    public void EnsureCapacity_AfterLakeCloseFailsWithoutChangingExistingShelf()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<Record>(1);
+        Assert.True(shelf.TryAllocate(out var handle));
+        shelf.GetRef(handle).Id = 77;
+
+        warehouse.Lake.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => shelf.EnsureCapacity(257));
+        Assert.Equal(1, shelf.Capacity);
+        Assert.Equal(77, shelf.Read(handle).Id);
+    }
+
+    [Fact]
+    public void WarehouseRejectsInvalidRegionGeometry()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DataWarehouse(4096, 10000));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DataWarehouse(8192, 4096));
+    }
+
     private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)
     {
         shelf.GetRef(handle).Id = value;
