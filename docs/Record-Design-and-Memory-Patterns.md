@@ -150,11 +150,12 @@ var dirtyCount = agents.CopyDirtySlots(dirtySlots);
 for (var i = 0; i < dirtyCount; i++)
 {
     var slot = dirtySlots[i];
-    // Resolve or schedule the corresponding live handle at the owning layer.
-}
+    if (!agents.TryGetHandle(slot, out var dirtyHandle))
+        continue; // The slot may have changed if the caller violated exclusive ownership.
 
-// Acknowledge only after the caller has completed its processing step.
-agents.MarkClean(handle);
+    // Process the record, then acknowledge this exact slot incarnation.
+    agents.MarkClean(dirtyHandle);
+}
 ```
 
 The example intentionally leaves scheduling and durable acknowledgement to the caller. A dirty slot index is not itself a handle; `TryGetHandle` resolves the current live incarnation so the caller does not fabricate a generation.
