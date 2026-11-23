@@ -221,6 +221,12 @@ internal sealed unsafe class DataLakeRegion : IDisposable
             var free = _freeBlocks[candidateOrder];
             if (free.Count == 0) continue;
 
+            // Reserve all metadata capacity before removing the source block. Allocator
+            // bookkeeping must not be left half-split if a managed collection needs memory.
+            _allocatedBlocks.EnsureCapacity(_allocatedBlocks.Count + 1);
+            for (var split = desiredOrder; split < candidateOrder; split++)
+                _freeBlocks[split].EnsureCapacity(_freeBlocks[split].Count + 1);
+
             using var enumerator = free.GetEnumerator();
             if (!enumerator.MoveNext()) continue;
             var blockStart = enumerator.Current;
