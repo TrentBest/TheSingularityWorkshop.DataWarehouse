@@ -6,6 +6,32 @@ namespace TheSingularityWorkshop.DataWarehouse.Tests;
 public sealed class DataLakeSizingTests
 {
     [Theory]
+    [InlineData(1, 1, 1)]
+    [InlineData(64, 4, 256)]
+    [InlineData(1024, 16, 16384)]
+    public void CalculatePayloadBytes_ReturnsCheckedProduct(ulong elementCount, ulong elementSize, ulong expected)
+    {
+        Assert.Equal((nuint)expected,
+            DataLakeSizing.CalculatePayloadBytes((nuint)elementCount, (nuint)elementSize));
+    }
+
+    [Fact]
+    public void CalculatePayloadBytes_RejectsZeroOperands()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            DataLakeSizing.CalculatePayloadBytes(0, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            DataLakeSizing.CalculatePayloadBytes(1, 0));
+    }
+
+    [Fact]
+    public void CalculatePayloadBytes_RejectsNativeSizeOverflow()
+    {
+        Assert.Throws<OverflowException>(() =>
+            DataLakeSizing.CalculatePayloadBytes(nuint.MaxValue, 2));
+    }
+
+    [Theory]
     [InlineData(1, 64, 1)]
     [InlineData(64, 64, 1)]
     [InlineData(65, 64, 2)]
