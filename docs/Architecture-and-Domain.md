@@ -53,7 +53,8 @@ The lake owns native backing regions shared by multiple shelves. It allocates co
 - Creates the shared `DataLake` with configured base page and normal region sizes.
 - Exposes the lake, default page size, and default region size.
 - Creates typed shelves with initial capacity and optional per-shelf alignment override.
-- Tracks created shelves.
+- Tracks active shelves in a linked ownership list and exposes the active `ShelfCount`.
+- Individually disposed shelves unregister immediately, avoiding retention of every shelf ever created.
 - Disposes registered shelves in reverse creation order, then closes the lake.
 - Rejects new shelf creation after disposal.
 
