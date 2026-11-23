@@ -21,9 +21,12 @@ public sealed class DataLakeSizingTests
     [Fact]
     public void CalculateRequiredPages_AcceptsLargestSupportedPageCount()
     {
-        var bytes = checked((nuint)int.MaxValue * 64u);
+        var maximumRepresentablePages = (int)Math.Min(
+            (ulong)int.MaxValue,
+            (ulong)(nuint.MaxValue / (nuint)64));
+        var bytes = checked((nuint)maximumRepresentablePages * (nuint)64);
 
-        Assert.Equal(int.MaxValue, DataLakeSizing.CalculateRequiredPages(bytes, 64));
+        Assert.Equal(maximumRepresentablePages, DataLakeSizing.CalculateRequiredPages(bytes, 64));
     }
 
     [Fact]
