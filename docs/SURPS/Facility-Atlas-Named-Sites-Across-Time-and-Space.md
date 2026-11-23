@@ -1,5 +1,11 @@
 # SURPS Facility Atlas — Named Sites Across Time and Space
 
+<p align="center">
+  <a href="https://github.com/TrentBest/TheSingularityWorkshop.Visualize">
+    <img src="https://raw.githubusercontent.com/TrentBest/TheSingularityWorkshop.Visualize/development/docs/assets/moniker.svg" alt="The Singularity Workshop" width="720" />
+  </a>
+</p>
+
 **SURPS sourcebook · LOD 3–4 facility profiles · Scenario-ready locations**
 
 > **Use note:** Every named facility in this atlas is a constructed setting example. Capacities, dimensions, staffing, schedules, and incidents are illustrative scenario values, not historical measurements or claims about real sites. Historical settings are inspired by broad, well-attested operating patterns; adapt details to the specific culture and period.
@@ -381,3 +387,7 @@ These are domain-level modeling categories. A SURPS implementation may select on
 ## 12. Relationship to the software repository
 
 This atlas describes places and operating systems in fictional and historical settings. It does not define a universal record layout, allocator, page model, persistence format, concurrency policy, or public API for the DataWarehouse library. The library's current code and tests remain the authority for its actual software behavior.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop" width="420" />
+</p>
