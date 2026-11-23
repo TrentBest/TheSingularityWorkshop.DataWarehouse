@@ -16,7 +16,8 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | README / quick start | Implemented | Product identity, rationale, example, scope, verification path |
 | Architecture and domain model | Implemented (source-checked) | Vocabulary, ownership topology, type responsibilities, memory model, lifecycle, concurrency, non-goals |
 | DataLake allocation contract | Implemented (source-checked) | Shared backing regions, buddy page allocation/splitting/coalescing, clearing, active/reserved accounting, reuse, deferred disposal |
-| DataHandle identity contract | Implemented (source-checked) | Shelf/slot/generation validation, stale-handle prevention, generation retirement, lifetime and security boundary |\n| DataLake region-allocation lifecycle | Source-checked | Region creation, buddy allocation, reclamation/coalescing, region reuse, deferred disposal |
+| DataHandle identity contract | Implemented (source-checked) | Shelf/slot/generation validation, stale-handle prevention, generation retirement, lifetime and security boundary |
+| DataLake region-allocation lifecycle | Source-checked | Region creation, buddy allocation, reclamation/coalescing, region reuse, deferred disposal |
 | DataShelf API and operational contract | Implemented | Operation semantics, failure behavior, complexity, dynamic capacity growth, relocation/lifetime, tests, concurrency caveat |
 | Class/type diagram | Planned | Show public types and ownership without inventing relationships |
 | Type neighborhood pages | Partial | DataLake, DataHandle, and DataShelf contracts documented; DataWarehouse public factory/disposal contract is covered in the architecture page |
