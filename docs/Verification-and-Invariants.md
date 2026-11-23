@@ -94,7 +94,17 @@ See `tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs`. The te
 
 Concurrency stress tests are not appropriate until a concurrency contract is selected. The current contract is externally synchronized single-shelf access / independent shelf ownership.
 
-## 05 Evidence rules
+## 05 Latest CI evidence
+
+The shared-page allocator and shelf-growth implementation was built and tested on .NET 10 at commit `cf3eb2723b6c442584b32e56e494321f311589c9`:
+
+- Ubuntu latest: 50 passed, 0 failed, 0 skipped.
+- Windows latest: 50 passed, 0 failed, 0 skipped.
+- Sith branch-policy workflow: passed for the same commit.
+
+Subsequent commits in this documentation pass changed only documentation/inventory content; no source or test files changed after that verified code/test tree.
+
+## 06 Evidence rules
 
 - A passing test proves only the tested behavior on that revision and environment.
 - A workflow badge is not proof that a particular commit passed unless its run and commit SHA are inspected.
@@ -103,7 +113,7 @@ Concurrency stress tests are not appropriate until a concurrency contract is sel
 - A source-checked diagram is not generated documentation.
 - Planned capabilities must remain labeled planned until implemented and verified.
 
-## 06 Completion gate
+## 07 Completion gate
 
 The DataWarehouse domain is ready for a consumer/use-case discussion only when:
 
