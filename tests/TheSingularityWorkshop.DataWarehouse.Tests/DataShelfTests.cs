@@ -659,6 +659,29 @@ public sealed class DataShelfTests
         Assert.False(shelf.TryGetHandle(shelf.Capacity, out _));
     }
 
+
+    [Fact]
+    public void IndividuallyDisposedShelves_AreUnregisteredFromWarehouse()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        var first = warehouse.CreateShelf<Record>(1);
+        var second = warehouse.CreateShelf<Record>(1);
+        Assert.Equal(2, warehouse.ShelfCount);
+
+        first.Dispose();
+        Assert.Equal(1, warehouse.ShelfCount);
+        first.Dispose();
+        Assert.Equal(1, warehouse.ShelfCount);
+
+        second.Dispose();
+        Assert.Equal(0, warehouse.ShelfCount);
+
+        using var third = warehouse.CreateShelf<Record>(1);
+        Assert.Equal(1, warehouse.ShelfCount);
+        warehouse.Dispose();
+        Assert.Equal(0, warehouse.ShelfCount);
+    }
+
     private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)
     {
         shelf.GetRef(handle).Id = value;
