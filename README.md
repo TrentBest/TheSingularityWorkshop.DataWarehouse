@@ -24,14 +24,14 @@ DataWarehouse is an independent Workshop library with a deliberately narrow resp
 The diagrams below make allocation ownership, fixed-size records, side-band tracking, and handle lifetime visible before diving into implementation details.
 
 <p align="center">
-  <img src="docs/assets/DataWarehouse-Architecture.svg" alt="DataWarehouse ownership path from warehouse and aligned lake allocation through typed shelves to fixed-size slots, with alive, dirty, and generation tracking" width="100%" />
+  <img src="docs/assets/DataWarehouse-Architecture.svg" alt="DataWarehouse shared DataLake regions divided into buddy-managed page blocks and allocated to multiple typed shelves with slot metadata" width="100%" />
 </p>
 
 *Conceptual, source-checked architecture view. It is not a byte-accurate memory-layout diagram or a measured performance result.*
 
 ## 01 What
 
-DataWarehouse places fixed-size unmanaged records in aligned shelf memory. A handle identifies a shelf, slot, and generation; separate bitmaps track slot liveness and dirty state.
+DataWarehouse stores fixed-size unmanaged records in page runs carved from shared, aligned DataLake regions. A handle identifies a shelf, slot, and generation; separate bitmaps track slot liveness and dirty state.
 
 The core address calculation is:
 
@@ -49,7 +49,7 @@ The goal is not to declare every workload faster. The goal is to make the storag
 
 - **Data Lake** — shared aligned backing regions with buddy-managed page allocation and reclamation.
 - **DataWarehouse** — owns the lake and creates shelves.
-- **Data Shelf** — growable contiguous slots for one unmanaged record type, backed by a page run from the shared lake.
+- **Data Shelf** — growable contiguous slots for one unmanaged record type, backed by a page run from the shared lake. `EnsureCapacity` preserves handles and payloads but invalidates old refs and raw addresses.
 - **Slot / bay** — one fixed-size record position.
 - **Alive tracker** — external bitmap for allocated slots.
 - **Dirty tracker** — external bitmap for changed or pending slots.
