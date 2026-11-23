@@ -38,7 +38,9 @@ DataWarehouse is deliberately security-agnostic. It stores records and maintains
 | `EnsureCapacity(minimumCapacity)` | Allocates a replacement lake block, copies payload and metadata, preserves handles, and returns old block | O(old payload bytes + old/new metadata) |
 | `Dispose()` | Returns the shelf's page block to the lake once and clears visible counts | O(buddy coalescing orders) |
 
-`CopyDirtySlots` returns slot indexes, not handles. Resolve each still-live slot with `TryGetHandle` before processing it; the returned handle carries the current generation and must still be used under the shelf's synchronization contract.\n\n**Important distinctions**
+`CopyDirtySlots` returns slot indexes, not handles. Resolve each still-live slot with `TryGetHandle` before processing it; the returned handle carries the current generation and must still be used under the shelf's synchronization contract.
+
+**Important distinctions**
 
 - `TryAllocate` clears `sizeof(T)` bytes. Its work is constant with respect to shelf capacity, but scales with record size.
 - `CopyDirtySlots` is not constant-time. It scans bitmap words; a small destination can stop the scan early.
