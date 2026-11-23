@@ -55,7 +55,7 @@ The goal is not to declare every workload faster. The goal is to make the storag
 - **Dirty tracker** — external bitmap for changed or pending slots.
 - **Data handle** — shelf identity + slot index + generation; supports constant-time validation and stale-handle rejection.
 
-Current implementation includes shared backing regions, buddy page splitting/coalescing, free-stack slot allocation, alive and dirty bitmaps, generation-checked handles, dirty-slot enumeration into caller-provided memory, shelf capacity growth that preserves handles and payloads, deferred region disposal, and unit tests.
+Current implementation includes shared backing regions, buddy page splitting/coalescing, free-stack slot allocation, alive and dirty bitmaps, generation-checked handles, dirty-slot enumeration into caller-provided memory, shelf capacity growth that preserves handles and payloads, immediate unregistration of individually disposed shelves, deferred region disposal, and unit tests.
 
 <p align="center">
   <img src="docs/assets/DataWarehouse-Handle-Lifecycle.svg" alt="DataWarehouse handle lifecycle from allocation through mutation and cleaning to freeing and generation-advancing slot reuse" width="100%" />
