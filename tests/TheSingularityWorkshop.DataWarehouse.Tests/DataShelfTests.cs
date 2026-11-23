@@ -250,6 +250,152 @@ public sealed class DataShelfTests
         Assert.Equal(0, warehouse.Lake.AllocatedBytes);
     }
 
+
+    [Fact]
+    public void NewAndReusedSlots_AreZeroInitialized()
+    {
+        using var warehouse = new DataWarehouse();
+        using var shelf = warehouse.CreateShelf<Record>(1);
+
+        Assert.True(shelf.TryAllocate(out var first));
+        shelf.GetRef(first).Id = 99;
+        shelf.GetRef(first).State = 7;
+        Assert.True(shelf.TryFree(first));
+
+        Assert.True(shelf.TryAllocate(out var second));
+        Assert.Equal(0, shelf.Read(second).Id);
+        Assert.Equal(0, shelf.Read(second).State);
+    }
+
+    [Fact]
+    public void Read_DoesNotMarkCleanRecordDirty()
+    {
+        using var warehouse = new DataWarehouse();
+        using var shelf = warehouse.CreateShelf<Record>(1);
+        Assert.True(shelf.TryAllocate(out var handle));
+        Assert.True(shelf.MarkClean(handle));
+
+        _ = shelf.Read(handle).Id;
+
+        Assert.False(shelf.IsDirty(handle));
+        Assert.Equal(0, shelf.DirtyCount);
+    }
+
+    [Fact]
+    public void RepeatedMutableAccess_OnlyCountsOneDirtyTransition()
+    {
+        using var warehouse = new DataWarehouse();
+        using var shelf = warehouse.CreateShelf<Record>(1);
+        Assert.True(shelf.TryAllocate(out var handle));
+        Assert.Equal(1, shelf.DirtyCount);
+
+        _ = shelf.GetRef(handle).Id;
+        _ = shelf.GetRef(handle).State;
+
+        Assert.Equal(1, shelf.DirtyCount);
+        Assert.True(shelf.MarkClean(handle));
+        Assert.False(shelf.MarkClean(handle));
+        Assert.Equal(0, shelf.DirtyCount);
+    }
+
+    [Fact]
+    public void CopyDirtySlots_EmptyAndUndersizedBuffersHaveDefinedBehavior()
+    {
+        using var warehouse = new DataWarehouse();
+        using var shelf = warehouse.CreateShelf<Record>(4);
+        Assert.True(shelf.TryAllocate(out _));
+        Assert.True(shelf.TryAllocate(out _));
+        Assert.True(shelf.TryAllocate(out _));
+
+        Span<int> empty = Span<int>.Empty;
+        Assert.Equal(0, shelf.CopyDirtySlots(empty));
+
+        Span<int> one = stackalloc int[1];
+        Assert.Equal(1, shelf.CopyDirtySlots(one));
+        Assert.Equal(0, one[0]);
+    }
+
+    [Theory]
+    [InlineData(63)]
+    [InlineData(64)]
+    [InlineData(65)]
+    [InlineData(127)]
+    [InlineData(128)]
+    [InlineData(129)]
+    public void DirtyBitmap_WordBoundariesEnumerateCorrectSlots(int capacity)
+    {
+        using var warehouse = new DataWarehouse();
+        using var shelf = warehouse.CreateShelf<Record>(capacity);
+        for (var i = 0; i < capacity; i++)
+        {
+            Assert.True(shelf.TryAllocate(out var handle));
+            if (i != 0 && i != capacity - 1)
+                Assert.True(shelf.MarkClean(handle));
+        }
+
+        Span<int> dirty = stackalloc int[2];
+        var count = shelf.CopyDirtySlots(dirty);
+
+        Assert.Equal(capacity == 1 ? 1 : 2, count);
+        Assert.Equal(0, dirty[0]);
+        if (capacity > 1)
+            Assert.Equal(capacity - 1, dirty[1]);
+    }
+
+    [Fact]
+    public void InvalidDefaultAndOutOfRangeHandlesAreRejected()
+    {
+        using var warehouse = new DataWarehouse();
+        using var shelf = warehouse.CreateShelf<Record>(2);
+        Assert.True(shelf.TryAllocate(out var valid));
+
+        Assert.False(shelf.IsAlive(default));
+        Assert.Throws<InvalidOperationException>(() => ReadValue(shelf, default));
+        Assert.Throws<InvalidOperationException>(() => ReadValue(shelf, valid with { Slot = 2 }));
+        Assert.Throws<InvalidOperationException>(() => ReadValue(shelf, valid with { Generation = 0 }));
+    }
+
+    [Fact]
+    public void ShelfOperations_ThrowAfterDisposal()
+    {
+        using var warehouse = new DataWarehouse();
+        var shelf = warehouse.CreateShelf<Record>(1);
+        Assert.True(shelf.TryAllocate(out var handle));
+        shelf.Dispose();
+
+        Assert.False(shelf.IsAlive(handle));
+        Assert.Throws<ObjectDisposedException>(() => ReadValue(shelf, handle));
+        Assert.Throws<ObjectDisposedException>(() => shelf.TryAllocate(out _));
+        Assert.Throws<ObjectDisposedException>(() => shelf.CopyDirtySlots(Span<int>.Empty));
+    }
+
+    [Fact]
+    public void WarehouseAndShelfRejectInvalidCapacitiesAndPageSizes()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DataWarehouse(63));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DataWarehouse(65));
+
+        using var warehouse = new DataWarehouse();
+        Assert.Throws<ArgumentOutOfRangeException>(() => warehouse.CreateShelf<Record>(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => warehouse.CreateShelf<Record>(-1));
+    }
+
+    [Fact]
+    public void IndividualShelfDisposal_UpdatesAggregateLakeAccounting()
+    {
+        using var warehouse = new DataWarehouse();
+        var first = warehouse.CreateShelf<Record>(2);
+        var second = warehouse.CreateShelf<Record>(3);
+        var expected = first.AllocatedBytes + second.AllocatedBytes;
+        Assert.Equal(expected, warehouse.Lake.AllocatedBytes);
+
+        first.Dispose();
+
+        Assert.Equal(second.AllocatedBytes, warehouse.Lake.AllocatedBytes);
+        second.Dispose();
+        Assert.Equal(0, warehouse.Lake.AllocatedBytes);
+    }
+
     private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)
     {
         shelf.GetRef(handle).Id = value;
