@@ -96,17 +96,17 @@ The current test suite exercises:
 
 See `tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs`. The test suite currently concentrates on DataShelf behavior; dedicated DataLake and DataWarehouse contract suites would make the type boundaries clearer.
 
-## 04 Missing verification before declaring the domain complete
+## 04 Remaining verification before declaring the domain complete
 
-1. Exact-size dirty-copy buffer coverage in addition to empty and undersized buffers.
-2. Additional valid page-size and record-size combinations, including more architecture-sensitive alignment cases.
-3. Checked-overflow behavior for capacity × record size and rounded extent.
-4. Failure-path behavior when managed metadata allocation or native allocation cannot complete.
-5. A deterministic fault-injection test for failure while registering a newly allocated shelf with its warehouse.
-6. A clear API decision on public exposure of `BaseAddress` and `DataWarehouse.Lake`; current docs describe the hazards but do not remove the escape hatches.
-7. A dedicated test for the `DataWarehouse.CreateShelf` create/dispose race if a deterministic synchronization seam is introduced.
+1. Broader page-size and record-size combinations, including architecture-sensitive alignment cases beyond the current Linux/Windows x64 matrix.
+2. Pure, allocation-free boundary tests for checked capacity × record-size arithmetic and buddy-order calculations. Current guards use checked arithmetic and reject page counts outside the supported integer index range, but extreme allocation requests are not safely testable by attempting real allocations.
+3. Failure-path tests for managed metadata allocation and native region allocation. These need a deterministic allocator/failure-injection seam rather than relying on actual process-wide out-of-memory conditions.
+4. A deterministic failure-injection test for warehouse ownership registration. The code returns the shelf allocation if registration fails, but the managed collection failure is not currently injectable.
+5. Higher-contention, long-duration independent-shelf create/dispose soak tests beyond the deterministic parallel and disposal-race tests.
 
-Concurrency stress tests are not appropriate until a concurrency contract is selected. The current contract is externally synchronized single-shelf access / independent shelf ownership.
+The public `BaseAddress` diagnostic pointer and `DataWarehouse.Lake` property are deliberately retained. Their unsafe/lifecycle semantics are documented: the address is not a safe record API, and directly disposing the lake closes new allocations while deferring region release until shelves return their pages.
+
+Concurrent mutation of one shelf remains unsupported and requires external synchronization. The implemented concurrency contract is independent shelf ownership; the tests cover parallel independent shelf lifecycle and warehouse disposal racing shelf creation.
 
 ## 05 Latest CI evidence
 
