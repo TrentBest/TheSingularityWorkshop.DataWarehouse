@@ -16,6 +16,8 @@ namespace TheSingularityWorkshop.DataWarehouse;
 public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
 {
     private readonly DataLake _lake;
+    private LinkedListNode<IDisposable>? _ownerNode;
+    private Action<LinkedListNode<IDisposable>>? _unregisterOwner;
     private DataLakeAllocation _allocation;
     private void* _baseAddress;
     private nuint _allocationSize;
@@ -76,6 +78,12 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         _allocation = lake.AllocateAligned(requestedBytes, (nuint)Math.Max(pageSize, lake.PageSize));
         _baseAddress = _allocation.Pointer;
         _allocationSize = _allocation.ByteCount;
+    }
+
+    internal void AttachOwner(LinkedListNode<IDisposable> node, Action<LinkedListNode<IDisposable>> unregisterOwner)
+    {
+        _ownerNode = node;
+        _unregisterOwner = unregisterOwner;
     }
 
     /// <summary>
@@ -265,6 +273,16 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         _baseAddress = null;
         AliveCount = 0;
         DirtyCount = 0;
+
+        // Remove the disposed shelf from the warehouse's ownership set immediately. This
+        // prevents a long-lived warehouse from retaining every shelf ever created.
+        var ownerNode = _ownerNode;
+        var unregisterOwner = _unregisterOwner;
+        _ownerNode = null;
+        _unregisterOwner = null;
+        if (ownerNode is not null)
+            unregisterOwner?.Invoke(ownerNode);
+
         GC.SuppressFinalize(this);
     }
 }
