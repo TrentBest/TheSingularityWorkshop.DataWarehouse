@@ -57,7 +57,7 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         PageSize = pageSize;
         Id = ShelfIdentity.Next();
 
-        var requestedBytes = checked((nuint)capacity * (nuint)sizeof(T));
+        var requestedBytes = DataLakeSizing.CalculatePayloadBytes((nuint)capacity, (nuint)sizeof(T));
         var bitmapLength = checked((int)(((long)capacity + 63) / 64));
 
         // Allocate all managed metadata before acquiring native memory. If any managed
@@ -111,7 +111,7 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
         Array.Copy(_alive, newAlive, _alive.Length);
         Array.Copy(_dirty, newDirty, _dirty.Length);
 
-        var requestedBytes = checked((nuint)minimumCapacity * (nuint)sizeof(T));
+        var requestedBytes = DataLakeSizing.CalculatePayloadBytes((nuint)minimumCapacity, (nuint)sizeof(T));
         var replacement = _lake.AllocateAligned(requestedBytes, (nuint)Math.Max(PageSize, _lake.PageSize));
 
         // New lake allocations are zeroed. Copy the old payload bytes, preserving live records
