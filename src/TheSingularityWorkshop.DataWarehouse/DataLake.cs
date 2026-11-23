@@ -93,7 +93,7 @@ public sealed unsafe class DataLake : IDisposable
                 throw;
             }
 
-            Interlocked.Add(ref _reservedBytes, newRegion.ReservedBytes);
+            Interlocked.Add(ref _reservedBytes, checked((long)newRegion.ReservedBytes));
             if (!newRegion.TryAllocate(requiredPages, alignmentPages, out var newStartPage, out var newOrder))
                 throw new InvalidOperationException("A newly created data-lake region could not satisfy its initial allocation.");
 
