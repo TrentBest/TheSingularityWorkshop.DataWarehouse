@@ -28,7 +28,7 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | Benchmark evidence | Implemented separately | Named workloads and CI artifacts live in the benchmark repository |
 | Deployment diagram | Not applicable | Current library is an in-process .NET component |
 | MicroBundle views | Not applicable | No MicroBundle dependency or contract in this repository |
-| SURPS domain sourcebooks | Implemented (growing collection) | Warehouse, data-center, extreme-environment, and facility-archetype coverage; separate from library implementation |
+| SURPS domain sourcebooks | Implemented (growing collection) | Warehouse, data-center, extreme-environment, archetype, and eight-site LOD 3–4 facility-atlas coverage; separate from library implementation |
 | Automated diagram generation / stale-output gate | Planned | No repository-wide generator or completeness gate is claimed today |
 
 ## Visual provenance
