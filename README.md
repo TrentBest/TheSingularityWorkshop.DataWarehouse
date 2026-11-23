@@ -103,13 +103,18 @@ dotnet test tests/TheSingularityWorkshop.DataWarehouse.Tests/TheSingularityWorks
 
 The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingularityWorkshop.Benchmarks.DataWarehouse) measures named access and lifecycle workloads. Check its reports before drawing performance conclusions.
 
-## 05 Available documentation and theory
+## 05 Architecture and contracts
+
+- [Architecture and complete domain model](docs/Architecture-and-Domain.md)
+- [DataLake allocation and ownership contract](docs/api/DataLake.md)
+- [DataShelf API and operational contract](docs/api/DataShelf.md)
+- [Verification plan and invariants](docs/Verification-and-Invariants.md)
+- [DataShelf lifecycle sequence](docs/UML/DataShelf-Lifecycle.md)
+- [Documentation inventory and diagram status](docs/DocumentationInventory.md)
+
+## 06 Theory and implementation
 
 - [SURPS sourcebooks — warehouses and data centers across time and space](docs/SURPS/README.md)
-
-- [Documentation inventory and diagram status](docs/DocumentationInventory.md)
-- [DataShelf API and operational contract](docs/api/DataShelf.md)
-- [DataShelf lifecycle sequence](docs/UML/DataShelf-Lifecycle.md)
 - [Visual assets](docs/assets/)
 - [Source code](src/TheSingularityWorkshop.DataWarehouse/)
 - [Unit tests](tests/TheSingularityWorkshop.DataWarehouse.Tests/)
