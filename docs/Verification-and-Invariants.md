@@ -13,7 +13,7 @@ This document maps the storage domain to properties that can be tested or otherw
 | DW-001 | Every shelf has positive fixed capacity | Constructor guard; zero and negative capacity tests | No known basic boundary gap |
 | DW-002 | Page alignment is a power of two and at least 64 | Constructor guards; invalid default and override tests | Broader valid page-size matrix remains useful |
 | DW-003 | Shelf base address satisfies requested alignment | Alignment tests | Multiple types and page sizes |
-| DW-004 | Allocation extent is rounded to page-size multiple | Extent tests | Very large overflow boundaries |
+| DW-004 | Allocation extent is a power-of-two buddy block covering payload and alignment | Extent tests and oversized-region test | Very large overflow boundaries |
 | DW-005 | New and reused record slots are zeroed | Allocation path plus new/reused slot test | Rounded padding bytes are not directly inspected |
 | DW-006 | Only one unmanaged T occupies a shelf | Generic constraint | Compile-time contract |
 | DW-007 | A live handle matches shelf, slot, generation, and alive bit | Validate | Invalid bounds/default/stale/foreign matrix |
@@ -31,12 +31,12 @@ This document maps the storage domain to properties that can be tested or otherw
 | DW-019 | Existing shelves can release memory after lake close | Lifecycle test | Already represented by current test |
 | DW-020 | No shared-shelf concurrency guarantee is claimed | API contract | Documentation and examples must remain explicit |
 | DW-021 | Multiple shelves share native backing regions | Shared-region test | Mixed allocation pressure across many regions |
-| DW-022 | Buddy blocks split to satisfy requests and coalesce on free | Buddy coalescing test | Randomized allocator property test |
-| DW-023 | Freed blocks are cleared before a new shelf receives them | Zeroed slot reuse test; allocation path clears full block | Explicit cross-shelf stale-byte isolation test |
-| DW-024 | Shelf growth preserves live payload, handles, generations, and bitmaps | EnsureCapacity growth test | Growth across several bitmap-word boundaries |
+| DW-022 | Buddy blocks split to satisfy requests and coalesce on free | Buddy coalescing and randomized allocation tests | Broader randomized allocate/free interleaving |
+| DW-023 | Freed blocks are cleared before a new shelf receives them | Same-shelf and cross-shelf zeroed reuse tests | Full-block byte scan is not exposed by the public API |
+| DW-024 | Shelf growth preserves live payload, handles, generations, and bitmaps | EnsureCapacity growth and 65-to-129 bitmap-boundary tests | Growth across several repeated reallocations |
 | DW-025 | Shelf growth returns the old block only after replacement is committed | EnsureCapacity implementation and growth test | Fault injection during copy/commit is not available |
-| DW-026 | Disposed lake defers region release until all shelves return allocations | Deferred-disposal test | Multiple regions with mixed outstanding allocations |
-| DW-027 | Regions larger than the default are allocated as power-of-two backing blocks | Oversized shelf region test | Very large page-index limits |
+| DW-026 | Disposed lake defers region release until all shelves return allocations | Deferred-disposal test with multiple live shelves | Multiple regions with mixed outstanding allocations |
+| DW-027 | Regions larger than the default are allocated as power-of-two backing blocks | Oversized shelf region test | Very large page-index limits |\n| DW-028 | Live shelf page runs never overlap | Deterministic randomized range-overlap test | More randomized seeds and mixed frees |\n| DW-029 | Reclaimed buddy blocks remain reusable and fully coalesce | Randomized release and subsequent larger allocation | Stress over multiple region sizes |\n| DW-030 | Larger shelf alignment overrides are honored by the lake | 8 KiB override over 4 KiB base-page test | More alignment ratios and platform validation |
 
 ## 02 Required state relationships
 
@@ -72,8 +72,9 @@ The current test suite exercises:
 - Exact-once shelf disposal, post-disposal behavior, aggregate warehouse disposal, and mixed individual-shelf allocation accounting.
 - Warehouse default-page-size and shelf-capacity validation.
 - Generation exhaustion and slot retirement.
-- Shared-region allocation, buddy coalescing, freed-region reuse, oversized backing regions, and deferred region disposal after lake closure.
-- Shelf capacity growth preserving existing handles, payloads, and side-band state.
+- Shared-region allocation, buddy coalescing, randomized non-overlapping allocations, freed-region reuse, cross-shelf stale-byte clearing, oversized backing regions, and deferred region disposal after lake closure.
+- Shelf capacity growth preserving existing handles, payloads, and side-band state across a bitmap-word boundary.
+- Larger shelf alignment overrides and growth rejection after lake closure.
 
 See `tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs`. The test suite currently concentrates on DataShelf behavior; dedicated DataLake and DataWarehouse contract suites would make the type boundaries clearer.
 
