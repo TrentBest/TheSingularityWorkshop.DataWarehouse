@@ -47,15 +47,15 @@ The goal is not to declare every workload faster. The goal is to make the storag
 
 ## 03 How
 
-- **Data Lake** — aligned unmanaged allocation boundary.
+- **Data Lake** — shared aligned backing regions with buddy-managed page allocation and reclamation.
 - **DataWarehouse** — owns the lake and creates shelves.
-- **Data Shelf** — page-aligned storage for one unmanaged record type.
+- **Data Shelf** — growable contiguous slots for one unmanaged record type, backed by a page run from the shared lake.
 - **Slot / bay** — one fixed-size record position.
 - **Alive tracker** — external bitmap for allocated slots.
 - **Dirty tracker** — external bitmap for changed or pending slots.
 - **Data handle** — shelf identity + slot index + generation; supports constant-time validation and stale-handle rejection.
 
-Current implementation includes aligned allocation, free-stack allocation/reclamation, alive and dirty bitmaps, generation-checked handles, dirty-slot enumeration into caller-provided memory, deterministic disposal, and unit tests.
+Current implementation includes shared backing regions, buddy page splitting/coalescing, free-stack slot allocation, alive and dirty bitmaps, generation-checked handles, dirty-slot enumeration into caller-provided memory, shelf capacity growth that preserves handles and payloads, deferred region disposal, and unit tests.
 
 <p align="center">
   <img src="docs/assets/DataWarehouse-Handle-Lifecycle.svg" alt="DataWarehouse handle lifecycle from allocation through mutation and cleaning to freeing and generation-advancing slot reuse" width="100%" />
@@ -107,6 +107,7 @@ The [DataWarehouse benchmark laboratory](https://github.com/TrentBest/TheSingula
 
 - [Architecture and complete domain model](docs/Architecture-and-Domain.md)
 - [DataLake allocation and ownership contract](docs/api/DataLake.md)
+- [DataLake region-allocation lifecycle](docs/UML/DataLake-Region-Allocation.md)
 - [DataHandle identity and validity contract](docs/api/DataHandle.md)
 - [DataShelf API and operational contract](docs/api/DataShelf.md)
 - [Verification plan and invariants](docs/Verification-and-Invariants.md)

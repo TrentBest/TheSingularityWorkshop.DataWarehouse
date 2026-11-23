@@ -15,9 +15,9 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 |---|---|---|
 | README / quick start | Implemented | Product identity, rationale, example, scope, verification path |
 | Architecture and domain model | Implemented (source-checked) | Vocabulary, ownership topology, type responsibilities, memory model, lifecycle, concurrency, non-goals |
-| DataLake allocation contract | Implemented (source-checked) | Aligned allocation, accounting, clearing, release, disposal, synchronization limits |
-| DataHandle identity contract | Implemented (source-checked) | Shelf/slot/generation validation, stale-handle prevention, generation retirement, lifetime and security boundary |
-| DataShelf API and operational contract | Implemented | Operation semantics, failure behavior, complexity, tests, concurrency caveat |
+| DataLake allocation contract | Implemented (source-checked) | Shared backing regions, buddy page allocation/splitting/coalescing, clearing, active/reserved accounting, reuse, deferred disposal |
+| DataHandle identity contract | Implemented (source-checked) | Shelf/slot/generation validation, stale-handle prevention, generation retirement, lifetime and security boundary |\n| DataLake region-allocation lifecycle | Source-checked | Region creation, buddy allocation, reclamation/coalescing, region reuse, deferred disposal |
+| DataShelf API and operational contract | Implemented | Operation semantics, failure behavior, complexity, dynamic capacity growth, relocation/lifetime, tests, concurrency caveat |
 | Class/type diagram | Planned | Show public types and ownership without inventing relationships |
 | Type neighborhood pages | Partial | DataLake, DataHandle, and DataShelf contracts documented; DataWarehouse public factory/disposal contract is covered in the architecture page |
 | DataShelf lifecycle sequence | Source-checked | Allocate, mutable access, dirty marking, clean, free, generation change |
@@ -25,7 +25,7 @@ This inventory follows the Workshop documentation standard: edify, not mystify; 
 | Data-flow / memory-layout diagram | Source-checked conceptual view | README illustration; not a byte-accurate layout |
 | Use cases | Planned | Fixed-size records, dirty-slot processing, slot reuse |
 | Complexity and allocation analysis | Partial | DataShelf operations and structural metadata costs documented; empirical costs remain in benchmark repository |
-| Verification plan and invariants | Implemented (coverage audit) | Domain invariants, current test evidence, explicit missing test matrix, completion gate |
+| Verification plan and invariants | Implemented (coverage audit) | Slot and allocator invariants, current test evidence, explicit missing test matrix, completion gate |
 | Test traceability | Partial | Invariant-to-test matrix exists; dedicated tests are still needed for listed gaps |
 | Benchmark evidence | Implemented separately | Named workloads and CI artifacts live in the benchmark repository |
 | Deployment diagram | Not applicable | Current library is an in-process .NET component |

@@ -29,7 +29,7 @@ This document maps the storage domain to properties that can be tested or otherw
 | DW-017 | Warehouse disposal releases every registered shelf | Aggregate, repeated, and individual-shelf accounting tests | Deterministic race/fault injection remains absent |
 | DW-018 | Lake rejects allocations after disposal | Lifecycle test | Accounting under mixed allocation/free |
 | DW-019 | Existing shelves can release memory after lake close | Lifecycle test | Already represented by current test |
-| DW-020 | No shared-shelf concurrency guarantee is claimed | API contract | Documentation and examples must remain explicit |
+| DW-020 | No shared-shelf concurrency guarantee is claimed | API contract | Documentation and examples must remain explicit |\n| DW-021 | Multiple shelves share native backing regions | Shared-region test | Mixed allocation pressure across many regions |\n| DW-022 | Buddy blocks split to satisfy requests and coalesce on free | Buddy coalescing test | Randomized allocator property test |\n| DW-023 | Freed blocks are cleared before a new shelf receives them | Zeroed slot reuse test; allocation path clears full block | Explicit cross-shelf stale-byte isolation test |\n| DW-024 | Shelf growth preserves live payload, handles, generations, and bitmaps | EnsureCapacity growth test | Growth across several bitmap-word boundaries |\n| DW-025 | Shelf growth returns the old block only after replacement is committed | EnsureCapacity implementation and growth test | Fault injection during copy/commit is not available |\n| DW-026 | Disposed lake defers region release until all shelves return allocations | Deferred-disposal test | Multiple regions with mixed outstanding allocations |\n| DW-027 | Regions larger than the default are allocated as power-of-two backing blocks | Oversized shelf region test | Very large page-index limits |
 
 ## 02 Required state relationships
 
@@ -65,7 +65,7 @@ The current test suite exercises:
 - Exact-once shelf disposal, post-disposal behavior, aggregate warehouse disposal, and mixed individual-shelf allocation accounting.
 - Warehouse default-page-size and shelf-capacity validation.
 - Generation exhaustion and slot retirement.
-- Lake disposal preventing new allocations while allowing existing shelves to release memory.
+- Shared-region allocation, buddy coalescing, freed-region reuse, oversized backing regions, and deferred region disposal after lake closure.\n- Shelf capacity growth preserving existing handles, payloads, and side-band state.
 
 See `tests/TheSingularityWorkshop.DataWarehouse.Tests/DataShelfTests.cs`. The test suite currently concentrates on DataShelf behavior; dedicated DataLake and DataWarehouse contract suites would make the type boundaries clearer.
 
