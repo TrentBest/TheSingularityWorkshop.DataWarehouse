@@ -41,6 +41,7 @@ public sealed unsafe class DataLake : IDisposable
         get { lock (_allocationGate) return _regions.Count; }
     }
 
+    /// <summary>Whether the lake has closed to new page allocations.</summary>
     public bool IsDisposed => Volatile.Read(ref _disposed) != 0;
 
     public DataLake(int pageSize = 4096, int regionSize = 4 * 1024 * 1024)
@@ -156,6 +157,7 @@ public sealed unsafe class DataLake : IDisposable
         return 1 << order;
     }
 
+    /// <summary>Closes the lake to new allocations and releases regions after all outstanding shelves return their pages.</summary>
     public void Dispose()
     {
         lock (_allocationGate)
