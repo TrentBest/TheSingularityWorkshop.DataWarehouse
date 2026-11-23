@@ -4,9 +4,9 @@
 
 ## 00 Identity
 
-DataWarehouse is a low-level, in-process storage library for fixed-size unmanaged records. Its domain is the controlled lifecycle of record storage: reserve memory, address slots, identify live records, track changes, reclaim slots, and release allocations.
+DataWarehouse is a low-level, in-process storage library for fixed-size unmanaged records. Its domain is the controlled lifecycle of record storage: reserve memory, address slots, identify live records, track changes, reclaim slots, grow typed capacity, and release allocations.
 
-This document defines the vocabulary and responsibility boundaries of the current implementation. It does not describe a database, persistence engine, or application service.
+This document defines the vocabulary and responsibility boundaries of the implemented storage model. It does not describe a database, persistence engine, or application service.
 
 ## 01 Domain vocabulary
 
@@ -24,7 +24,7 @@ This document defines the vocabulary and responsibility boundaries of the curren
 | Alive state | Whether a slot currently contains an allocated record | External bitmap |
 | Dirty state | Whether a slot requires downstream processing/acknowledgement | External bitmap |
 | Free stack | Available slot indexes | Managed integer array + count |
-| Allocation extent | Power-of-two buddy block assigned to a shelf | Internal region/start-page/order allocation token |
+| Allocation extent | Power-of-two buddy block assigned to a shelf | Region/start-page/order allocation token |
 
 A handle is a storage identity, not an object reference, authorization token, persistence key, or globally stable identifier.
 
@@ -34,8 +34,9 @@ A handle is a storage identity, not an object reference, authorization token, pe
 flowchart TD
     W[DataWarehouse] -->|owns| L[DataLake]
     W -->|creates and tracks| S1[DataShelf<T>]
-    S1 -->|requests allocation from| L
-    L --> R[Shared aligned backing regions]\n    R --> P[Buddy-managed page blocks]\n    S1 -->|owns one contiguous page run| P
+    L --> R[Shared aligned backing regions]
+    R --> P[Buddy-managed page blocks]
+    S1 -->|owns one contiguous page run| P
     S1 --> F[Free-slot stack]
     S1 --> G[Generation array]
     S1 --> A[Alive bitmap]
@@ -49,36 +50,40 @@ The lake owns native backing regions shared by multiple shelves. It allocates co
 
 ### DataWarehouse
 
-- Validates the default page-size setting.
-- Exposes the lake and configured default page size.
-- Creates typed shelves with fixed capacity and optional per-shelf page-size override.
+- Creates the shared `DataLake` with configured base page and normal region sizes.
+- Exposes the lake, default page size, and default region size.
+- Creates typed shelves with initial capacity and optional per-shelf alignment override.
 - Tracks created shelves.
 - Disposes registered shelves in reverse creation order, then closes the lake.
 - Rejects new shelf creation after disposal.
 
-It does not provide record lookup by key, transactions, schema evolution, or query execution.
+Shelf creation is exception-conscious: if warehouse disposal wins the creation race, the just-created shelf is disposed before an exception is raised. If adding the shelf to the warehouse's managed ownership list fails, the shelf is also disposed before the original failure is rethrown.
 
-Shelf creation is exception-conscious: if warehouse disposal wins the creation race, the just-created shelf is disposed before an exception is raised. If adding the shelf to the warehouse's managed ownership list fails, the shelf is also disposed before the original failure is rethrown. This prevents an unmanaged allocation from being stranded when ownership registration cannot complete.
+It does not provide record lookup by key, transactions, schema evolution, or query execution.
 
 ### DataLake
 
-- Allocates aligned, zeroed native memory.
-- Tracks total rounded allocation bytes.
-- Rejects allocations after disposal.
-- Releases exact pointer/extent pairs supplied by shelves.
+- Owns one or more aligned native backing regions.
+- Suballocates contiguous power-of-two page blocks through per-region buddy free lists.
+- Splits larger blocks on allocation and coalesces free buddies on reclamation.
+- Clears every allocated block before returning it, preventing stale bytes from a prior allocation lifetime.
+- Tracks active shelf-allocation bytes separately from reserved native-region bytes.
+- Retains free regions for reuse and releases them after disposal once the final shelf returns its pages.
+- Serializes region allocation/reclamation and lake disposal without locking record access.
 
-It does not suballocate records within one shared arena or reclaim individual slots.
+It does not interpret record types, handles, alive/dirty state, or domain meaning.
 
 ### DataShelf<T>
 
-- Stores one unmanaged record type in contiguous fixed-size slots.
+- Stores one unmanaged record type in contiguous fixed-size slots within its current page run.
 - Uses `base + slot × sizeof(T)` addressing.
 - Allocates and frees slots through a LIFO free stack.
 - Validates handles using shelf identity, bounds, generation, and alive state.
 - Tracks alive and dirty state in separate bitmaps.
 - Returns mutable refs through `GetRef` and read-only refs through `Read`.
 - Enumerates dirty slot indexes into caller-owned memory.
-- Owns and returns its page-run allocation to the lake.
+- Grows with `EnsureCapacity`, allocating a replacement page run and preserving record bytes, handles, generations, and side-band state.
+- Returns its page-run allocation to the lake on disposal.
 
 ### DataHandle and ShelfIdentity
 
@@ -104,64 +109,82 @@ The current metadata cost is approximately:
 - the same bitmap size for dirty bits;
 - array headers and alignment overhead managed by the CLR.
 
-This excludes object headers, allocator overhead, and buddy-block padding. It is a structural estimate, not a measured footprint. A shelf growth operation also temporarily holds both old and replacement page runs while copying.
+This excludes object headers, allocator metadata, and buddy-block padding. It is a structural estimate, not a measured footprint. Growth temporarily holds both old and replacement page runs while copying.
 
-## 05 Lifecycle model
+## 05 Allocation and growth
 
-1. Warehouse creates a shelf.
-2. Shelf allocates metadata arrays and initializes every generation to 1.
-3. Lake finds or creates a shared region, allocates a buddy page block, and clears the block before returning it to the shelf.
-4. Allocation pops a slot, marks it alive and dirty, clears its record bytes, and returns a handle.
-5. Mutable access validates the handle and marks dirty before exposing a ref.
-6. Read-only access validates the handle but does not change dirty state.
-7. A consumer acknowledges processing with `MarkClean`.
-8. Free clears alive and dirty state, decrements counters, advances generation, and returns the slot to the free stack.
-9. A slot at generation `int.MaxValue` is retired instead of being returned to the free stack.
-10. `EnsureCapacity` may allocate a larger replacement block, copy the existing payload, preserve handle generations and bitmaps, then return the old block to the lake. The caller must quiesce all refs and raw addresses during growth.\n11. Shelf disposal returns its page block once; warehouse disposal performs this for every registered shelf before closing the lake.
+A new shelf initializes its managed slot metadata before requesting native pages. The lake finds or creates a shared region, allocates a buddy block, and clears it before returning it.
 
-## 06 Dirty state is a signal, not a journal
+`EnsureCapacity(minimumCapacity)` is a controlled relocation operation:
 
-Dirty means “this slot is currently marked for processing.” It does not mean the shelf records every write, retains a history, or guarantees delivery to a consumer.
+1. Reject disposed shelves and non-positive requested capacity; do nothing when current capacity is already sufficient.
+2. Allocate replacement free-stack, generation, alive, and dirty arrays.
+3. Allocate a replacement page run from the lake.
+4. Copy the previous payload bytes into the zeroed replacement block.
+5. Append new slot indexes to the free stack and initialize their generations to 1.
+6. Commit the new pointer, allocation token, metadata arrays, and capacity.
+7. Return the old page run to the lake.
 
-- New allocations begin dirty.
-- `GetRef` marks dirty before returning the mutable reference.
-- The shelf cannot observe writes made later through an already-returned ref.
-- `MarkClean` acknowledges the current dirty state.
-- A later `GetRef` marks the slot dirty again.
-- Freeing a dirty slot clears its dirty bit.
-- `CopyDirtySlots` copies slot indexes only; it does not clear bits or establish a stable snapshot under concurrent mutation.
+Existing handles remain valid because shelf identity, slot indexes, and generations are preserved. Any ref or raw address obtained before growth becomes invalid. The caller must ensure exclusive, quiescent access and stop using all outstanding refs and addresses before calling `EnsureCapacity`.
 
-Consumers must own the scheduling, acknowledgement, retry, and synchronization policy above this library.
+Growth may temporarily require enough free lake pages for both old and new blocks. The lake may create another region if existing free blocks cannot satisfy the replacement request.
 
-## 07 Concurrency and lifetime
+## 06 Slot lifecycle and dirty state
 
-The current shelf is not thread-safe for concurrent mutation. Its free stack, counters, generations, and bitmaps are ordinary mutable state. The intended performance model is independent shelf ownership: assign separate shelves to workers, or externally synchronize shared access.
+1. Shelf creation initializes every slot generation to 1 and all alive/dirty bits to false.
+2. `TryAllocate` pops a free slot, marks it alive and dirty, clears its record bytes, and returns a generation-checked handle.
+3. `GetRef` validates the handle and marks dirty before exposing a mutable ref.
+4. `Read` validates the handle but does not change dirty state.
+5. `MarkClean` clears dirty state as an acknowledgement.
+6. `TryFree` clears alive and dirty state, decrements counters, advances generation, and returns the slot to the free stack.
+7. A slot at generation `int.MaxValue` is retired instead of being returned to the free stack.
+8. Shelf growth preserves existing payload and side-band state but invalidates old refs and addresses.
+9. Shelf disposal returns its page run once. Warehouse disposal performs this for every registered shelf before closing the lake.
 
-Returned refs and `BaseAddress` can outlive the method that exposed them. No method-level lock can make an escaped ref safe after disposal or growth. The caller must ensure that all refs and raw addresses are no longer used before growing, freeing, or disposing a shelf. Lake allocation/reclamation is synchronized separately from record access.
+Dirty means “this slot is currently marked for processing.” It is not a write journal, event stream, or delivery guarantee. The shelf cannot observe writes made later through an already-returned ref. `CopyDirtySlots` copies indexes only; it does not clear bits or create a stable snapshot under concurrent mutation.
 
-## 08 Deliberate non-goals
+## 07 Accounting and fragmentation
+
+| Metric | Meaning |
+|---|---|
+| `DataLake.AllocatedBytes` | Buddy-block bytes currently assigned to live shelves, including block rounding |
+| `DataLake.ReservedBytes` | Total native backing-region bytes |
+| `DataLake.FreeBytes` | Reserved bytes not assigned to live shelf blocks |
+| `DataLake.RegionCount` | Number of retained native regions |
+| `DataShelf<T>.AllocatedBytes` | Current buddy-block extent for this shelf; retained as a size diagnostic after disposal |
+
+Free bytes are not necessarily one contiguous allocation. Buddy fragmentation may prevent a request from using the total free byte count, even when enough bytes are free in aggregate.
+
+## 08 Concurrency and lifetime
+
+A shelf is not thread-safe for concurrent mutation. Its free stack, counters, generations, and bitmaps are ordinary mutable state. The performance model is independent shelf ownership: assign separate shelves to workers, or externally synchronize shared access.
+
+Lake page allocation/reclamation is synchronized separately from record access. This keeps allocator coordination out of per-record reads and writes.
+
+Returned refs and `BaseAddress` can outlive the method that exposed them. No method-level lock can make an escaped ref safe after growth or disposal. The caller must ensure that all refs and raw addresses are no longer used before growing, freeing, or disposing a shelf.
+
+If the lake is disposed while shelves remain active, it rejects new allocations but retains backing regions until the final shelf returns its page run.
+
+## 09 Deliberate non-goals
 
 The current domain does not include:
 
-- Variable-size objects, strings, blobs, or arbitrary object graphs.
+- Variable-size records, strings, blobs, or arbitrary object graphs.
 - Key/value indexes, queries, joins, transactions, or relational semantics.
 - Serialization, persistence, snapshots, crash recovery, replication, or durability.
-- Variable-size records, relocation of individual records, or compaction. Shelf-capacity growth is implemented, but it relocates the shelf's contiguous page run and requires quiescent access.
+- Individual-record relocation, compaction, or automatic background resizing.
 - Internal work queues, subscriptions, change journals, or event delivery.
-- Internal locks, lock-free shared mutation, or automatic worker scheduling.
+- Lock-free shared-shelf mutation or automatic worker scheduling.
 - Authentication, authorization, encryption, or security policy.
 - Unity types, FSM_COS, MicroBundleDomain, Ontology, or UI dependencies.
 
-These may be composed above DataWarehouse or considered as separate future domains. They are not implied by the word “warehouse.”
+Shelf-capacity growth is implemented, but it relocates the shelf's contiguous page run and requires quiescent access. These boundaries keep DataWarehouse focused on memory and record lifecycle primitives.
 
-## 09 Boundary with the wider Workshop
-
-DataWarehouse owns memory and record lifecycle primitives. It should remain independently usable and dependency-light.
+## 10 Boundary with the wider Workshop
 
 - FSM_COS may compose security, scheduling, and application-level storage abstractions above it.
 - DataWarehouse does not enforce FSM_COS security policy.
 - SingularityWarehouse may coordinate DataWarehouse with other sources and higher-level semantics.
 - SURPS documents warehouse/data-center settings and scenarios; those books do not define this library's allocator or API contract.
-
 
 <p align="center"><img src="https://raw.githubusercontent.com/TrentBest/FSM_API/master/Documentation/Branding/TheSingularityWorkshop.png" alt="The Singularity Workshop" width="200" /></p>
