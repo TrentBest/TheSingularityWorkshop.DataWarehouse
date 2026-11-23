@@ -157,7 +157,7 @@ for (var i = 0; i < dirtyCount; i++)
 agents.MarkClean(handle);
 ```
 
-The example intentionally leaves scheduling and durable acknowledgement to the caller. A dirty slot index is not itself a handle; the caller must preserve the correct live handle or otherwise validate slot state before acting.
+The example intentionally leaves scheduling and durable acknowledgement to the caller. A dirty slot index is not itself a handle; `TryGetHandle` resolves the current live incarnation so the caller does not fabricate a generation.
 
 ## 09 Deliberate exclusions
 
