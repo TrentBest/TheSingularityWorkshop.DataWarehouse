@@ -1,17 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820" role="img" aria-labelledby="title desc">
-<title id="title">DataWarehouse — from lake to slot</title><desc id="desc">A technical visual of the ownership path from DataWarehouse through DataLake and DataShelf to aligned fixed-size slots, with handle and tracking metadata.</desc>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071523"/><stop offset="1" stop-color="#142d43"/></linearGradient><linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#37d9ef"/><stop offset="1" stop-color="#3879d9"/></linearGradient><linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#635bce"/></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="9" stdDeviation="12" flood-color="#000" flood-opacity=".28"/></filter></defs>
-<rect width="1440" height="820" rx="32" fill="url(#bg)"/><circle cx="1210" cy="130" r="240" fill="#2385ad" opacity=".08"/><circle cx="220" cy="730" r="250" fill="#7563d8" opacity=".08"/>
-<text x="84" y="82" fill="#6ce7f3" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="5">THE SINGULARITY WORKSHOP · DATAWAREHOUSE</text>
-<text x="84" y="146" fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" font-size="48" font-weight="750">From allocation to address</text>
-<text x="84" y="187" fill="#b6c9d9" font-family="Segoe UI,Arial,sans-serif" font-size="22">A narrow, explicit path from ownership to fixed-size unmanaged records.</text>
-<g filter="url(#shadow)"><rect x="84" y="250" width="260" height="142" rx="18" fill="#16344a" stroke="#3e8fa8" stroke-width="2"/><rect x="382" y="250" width="260" height="142" rx="18" fill="#16344a" stroke="#3e8fa8" stroke-width="2"/><rect x="680" y="250" width="300" height="142" rx="18" fill="#202d50" stroke="#8d83e9" stroke-width="2"/><rect x="1018" y="250" width="338" height="142" rx="18" fill="#123d50" stroke="#40cde0" stroke-width="2"/></g>
-<g fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" text-anchor="middle"><text x="214" y="300" font-size="27" font-weight="700">DataWarehouse</text><text x="214" y="334" font-size="17" fill="#b6c9d9">Owns typed shelves</text><text x="512" y="300" font-size="27" font-weight="700">DataLake</text><text x="512" y="334" font-size="17" fill="#b6c9d9">Aligned allocation</text><text x="830" y="300" font-size="27" font-weight="700">DataShelf&lt;T&gt;</text><text x="830" y="334" font-size="17" fill="#c8c4ff">One unmanaged record type</text><text x="1187" y="300" font-size="27" font-weight="700">Slots / bays</text><text x="1187" y="334" font-size="17" fill="#a9edf3">Fixed-size records</text></g>
-<g stroke="#7edfeb" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M344 321 H372 l-9 -8 m9 8 -9 8"/><path d="M642 321 H670 l-9 -8 m9 8 -9 8"/><path d="M980 321 H1008 l-9 -8 m9 8 -9 8"/></g>
-<text x="84" y="458" fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">A slot is not an object graph</text><text x="84" y="493" fill="#b6c9d9" font-family="Segoe UI,Arial,sans-serif" font-size="19">Record bytes stay in aligned memory; lifecycle metadata lives beside the payload.</text>
-<g transform="translate(84 535)"><rect width="820" height="156" rx="18" fill="#0b1e2d" stroke="#31536a" stroke-width="2"/><text x="28" y="35" fill="#8ceaf3" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="2">CONTIGUOUS RECORD REGION</text>
-<rect x="28" y="57" width="82" height="62" rx="7" fill="url(#cyan)" opacity="0.82"/><text x="69" y="94" fill="#061724" font-family="Consolas,monospace" font-size="18" font-weight="700" text-anchor="middle">00</text><rect x="122" y="57" width="82" height="62" rx="7" fill="url(#cyan)" opacity="0.82"/><text x="163" y="94" fill="#061724" font-family="Consolas,monospace" font-size="18" font-weight="700" text-anchor="middle">01</text><rect x="216" y="57" width="82" height="62" rx="7" fill="url(#violet)" opacity="1"/><text x="257" y="94" fill="#061724" font-family="Consolas,monospace" font-size="18" font-weight="700" text-anchor="middle">02</text><rect x="310" y="57" width="82" height="62" rx="7" fill="url(#cyan)" opacity="0.82"/><text x="351" y="94" fill="#061724" font-family="Consolas,monospace" font-size="18" font-weight="700" text-anchor="middle">03</text><rect x="404" y="57" width="82" height="62" rx="7" fill="url(#cyan)" opacity="0.82"/><text x="445" y="94" fill="#061724" font-family="Consolas,monospace" font-size="18" font-weight="700" text-anchor="middle">04</text><rect x="498" y="57" width="82" height="62" rx="7" fill="url(#cyan)" opacity="0.82"/><text x="539" y="94" fill="#061724" font-family="Consolas,monospace" font-size="18" font-weight="700" text-anchor="middle">05</text><rect x="592" y="57" width="82" height="62" rx="7" fill="url(#cyan)" opacity="0.82"/><text x="633" y="94" fill="#061724" font-family="Consolas,monospace" font-size="18" font-weight="700" text-anchor="middle">06</text><rect x="686" y="57" width="82" height="62" rx="7" fill="url(#cyan)" opacity="0.82"/><text x="727" y="94" fill="#061724" font-family="Consolas,monospace" font-size="18" font-weight="700" text-anchor="middle">07</text>
-<text x="28" y="143" fill="#b6c9d9" font-family="Segoe UI,Arial,sans-serif" font-size="15">slot index × sizeof(T) → record address</text></g>
-<g transform="translate(940 535)"><rect width="416" height="156" rx="18" fill="#0b1e2d" stroke="#31536a" stroke-width="2"/><text x="24" y="35" fill="#c4b5fd" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="2">SIDE-BAND TRACKING</text><text x="24" y="71" fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" font-size="19">Alive bitmap</text><text x="24" y="99" fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" font-size="19">Dirty bitmap</text><text x="24" y="127" fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" font-size="19">Generation per slot</text></g>
-<text x="84" y="764" fill="#8ba8bb" font-family="Segoe UI,Arial,sans-serif" font-size="16">Conceptual, source-checked architecture · not a byte-accurate layout or a performance result</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+<title id="title">DataWarehouse — shared lake and typed shelves</title>
+<desc id="desc">DataWarehouse owns a DataLake. The lake owns shared aligned backing regions divided into buddy-managed page blocks. Multiple typed shelves receive contiguous page runs and maintain their own slot, generation, alive, and dirty metadata.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071523"/><stop offset="1" stop-color="#142d43"/></linearGradient>
+  <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#37d9ef"/><stop offset="1" stop-color="#3879d9"/></linearGradient>
+  <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#635bce"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity=".25"/></filter>
+</defs>
+<rect width="1440" height="900" rx="32" fill="url(#bg)"/>
+<circle cx="1210" cy="130" r="240" fill="#2385ad" opacity=".08"/>
+<circle cx="220" cy="790" r="250" fill="#7563d8" opacity=".08"/>
+<text x="72" y="72" fill="#6ce7f3" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="4">THE SINGULARITY WORKSHOP · DATAWAREHOUSE</text>
+<text x="72" y="132" fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" font-size="46" font-weight="750">One lake. Shared pages. Typed shelves.</text>
+<text x="72" y="174" fill="#b6c9d9" font-family="Segoe UI,Arial,sans-serif" font-size="21">The lake owns backing regions; shelves own slot lifecycles and contiguous page runs.</text>
+<g filter="url(#shadow)">
+  <rect x="72" y="225" width="260" height="116" rx="18" fill="#16344a" stroke="#3e8fa8" stroke-width="2"/>
+  <rect x="410" y="225" width="300" height="116" rx="18" fill="#16344a" stroke="#3e8fa8" stroke-width="2"/>
+  <rect x="790" y="215" width="578" height="310" rx="20" fill="#0b1e2d" stroke="#40cde0" stroke-width="2"/>
+</g>
+<g fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" text-anchor="middle">
+  <text x="202" y="270" font-size="27" font-weight="700">DataWarehouse</text><text x="202" y="304" font-size="17" fill="#b6c9d9">Aggregate owner + shelf factory</text>
+  <text x="560" y="270" font-size="27" font-weight="700">DataLake</text><text x="560" y="304" font-size="17" fill="#b6c9d9">Shared region + page allocator</text>
+  <text x="1079" y="257" font-size="25" font-weight="700">Backing region · 4 MiB example</text>
+  <text x="1079" y="287" font-size="16" fill="#a9edf3">Page-aligned native memory · buddy free lists</text>
+</g>
+<g stroke="#7edfeb" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M332 283 H398 l-10 -8 m10 8 -10 8"/>
+  <path d="M710 283 H770 l-10 -8 m10 8 -10 8"/>
+</g>
+<text x="824" y="337" fill="#8ceaf3" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2">PAGE BLOCKS</text>
+<g transform="translate(824 358)">
+  <rect x="0" y="0" width="520" height="60" rx="10" fill="#18394e" stroke="#3d687f"/>
+  <rect x="8" y="8" width="120" height="44" rx="6" fill="url(#cyan)"/>
+  <rect x="136" y="8" width="120" height="44" rx="6" fill="url(#cyan)"/>
+  <rect x="264" y="8" width="56" height="44" rx="6" fill="url(#violet)"/>
+  <rect x="328" y="8" width="56" height="44" rx="6" fill="url(#violet)"/>
+  <rect x="392" y="8" width="56" height="44" rx="6" fill="#24445a" stroke="#5e7f91"/>
+  <rect x="456" y="8" width="56" height="44" rx="6" fill="#24445a" stroke="#5e7f91"/>
+  <g fill="#071523" font-family="Consolas,monospace" font-size="15" font-weight="700" text-anchor="middle">
+    <text x="68" y="36">Shelf A</text><text x="196" y="36">Shelf A</text><text x="292" y="36">B</text><text x="356" y="36">B</text><text x="420" y="36">Free</text><text x="484" y="36">Free</text>
+  </g>
+</g>
+<text x="824" y="450" fill="#b6c9d9" font-family="Segoe UI,Arial,sans-serif" font-size="16">Blocks split to allocate; adjacent free buddies coalesce on reclamation.</text>
+<g stroke="#7edfeb" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M560 341 V560 H390 V596"/><path d="M1079 525 V560 H1050 V596"/></g>
+<g filter="url(#shadow)">
+  <rect x="72" y="596" width="610" height="194" rx="18" fill="#202d50" stroke="#8d83e9" stroke-width="2"/>
+  <rect x="758" y="596" width="610" height="194" rx="18" fill="#123d50" stroke="#40cde0" stroke-width="2"/>
+</g>
+<g font-family="Segoe UI,Arial,sans-serif">
+  <text x="104" y="642" fill="#f3f8ff" font-size="27" font-weight="700">DataShelf&lt;AgentState&gt;</text>
+  <text x="104" y="674" fill="#c8c4ff" font-size="17">Shelf A · contiguous slot records</text>
+  <g transform="translate(104 700)">
+    <rect width="500" height="42" rx="7" fill="#0b1e2d" stroke="#5f63a8"/>
+    <g fill="url(#violet)"><rect x="7" y="7" width="58" height="28" rx="4"/><rect x="72" y="7" width="58" height="28" rx="4"/><rect x="137" y="7" width="58" height="28" rx="4"/><rect x="202" y="7" width="58" height="28" rx="4"/><rect x="267" y="7" width="58" height="28" rx="4"/></g>
+    <g fill="#f3f8ff" font-size="13" text-anchor="middle"><text x="36" y="26">0</text><text x="101" y="26">1</text><text x="166" y="26">2</text><text x="231" y="26">3</text><text x="296" y="26">4</text></g>
+    <text x="395" y="26" fill="#b6c9d9" font-size="14">… capacity</text>
+  </g>
+  <text x="790" y="642" fill="#f3f8ff" font-size="27" font-weight="700">DataShelf&lt;WorldEntity&gt;</text>
+  <text x="790" y="674" fill="#a9edf3" font-size="17">Shelf B · independent worker ownership</text>
+  <g transform="translate(790 700)">
+    <rect width="500" height="42" rx="7" fill="#0b1e2d" stroke="#3d8ca0"/>
+    <g fill="url(#cyan)"><rect x="7" y="7" width="58" height="28" rx="4"/><rect x="72" y="7" width="58" height="28" rx="4"/><rect x="137" y="7" width="58" height="28" rx="4"/><rect x="202" y="7" width="58" height="28" rx="4"/><rect x="267" y="7" width="58" height="28" rx="4"/></g>
+    <g fill="#061724" font-size="13" font-weight="700" text-anchor="middle"><text x="36" y="26">0</text><text x="101" y="26">1</text><text x="166" y="26">2</text><text x="231" y="26">3</text><text x="296" y="26">4</text></g>
+    <text x="395" y="26" fill="#b6c9d9" font-size="14">… capacity</text>
+  </g>
+</g>
+<text x="72" y="842" fill="#8ba8bb" font-family="Segoe UI,Arial,sans-serif" font-size="16">Side-band per-shelf metadata: free-slot stack · generation array · alive bitmap · dirty bitmap</text>
+<text x="72" y="870" fill="#6ce7f3" font-family="Segoe UI,Arial,sans-serif" font-size="14">Conceptual, source-checked architecture · not a byte-accurate layout or benchmark result</text>
 </svg>
