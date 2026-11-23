@@ -1,20 +1,22 @@
 namespace TheSingularityWorkshop.DataWarehouse;
 
-/// <summary>The owner and factory for a Data Lake and its page-aligned shelves.</summary>
+/// <summary>The aggregate owner and factory for a shared DataLake and its typed shelves.</summary>
 public sealed class DataWarehouse : IDisposable
 {
     private readonly List<IDisposable> _shelves = [];
     private readonly object _gate = new();
     private int _disposed;
 
-    public DataLake Lake { get; } = new();
+    public DataLake Lake { get; }
     public int DefaultPageSize { get; }
+    public int DefaultRegionSize { get; }
 
-    public DataWarehouse(int defaultPageSize = 4096)
+    public DataWarehouse(int defaultPageSize = 4096, int defaultRegionSize = 4 * 1024 * 1024)
     {
-        if (defaultPageSize < 64 || (defaultPageSize & (defaultPageSize - 1)) != 0)
-            throw new ArgumentOutOfRangeException(nameof(defaultPageSize), "Page size must be a power of two and at least 64 bytes.");
+        // Let DataLake own the canonical validation rules for page and region geometry.
+        Lake = new DataLake(defaultPageSize, defaultRegionSize);
         DefaultPageSize = defaultPageSize;
+        DefaultRegionSize = defaultRegionSize;
     }
 
     public DataShelf<T> CreateShelf<T>(int capacity, int? pageSize = null) where T : unmanaged
@@ -28,15 +30,16 @@ public sealed class DataWarehouse : IDisposable
                 shelf.Dispose();
                 throw new ObjectDisposedException(nameof(DataWarehouse));
             }
+
             try
             {
                 _shelves.Add(shelf);
             }
             catch
             {
-                // The shelf already owns native memory. If managed ownership registration
-                // fails (for example, List growth throws), release that allocation before
-                // propagating the original failure.
+                // The shelf already owns pages in the shared lake. If managed ownership
+                // registration fails (for example, List growth throws), return those pages
+                // before propagating the original failure.
                 shelf.Dispose();
                 throw;
             }
