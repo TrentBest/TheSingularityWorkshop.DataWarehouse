@@ -83,6 +83,7 @@ public sealed unsafe class DataLake : IDisposable
 
             var regionPages = NextPowerOfTwo(Math.Max(_regionPageCount, Math.Max(requiredPages, alignmentPages)));
             var newRegion = new DataLakeRegion(PageSize, regionPages);
+            var nextReservedBytes = checked(ReservedBytes + checked((long)newRegion.ReservedBytes));
             try
             {
                 _regions.Add(newRegion);
@@ -93,7 +94,7 @@ public sealed unsafe class DataLake : IDisposable
                 throw;
             }
 
-            Interlocked.Add(ref _reservedBytes, checked((long)newRegion.ReservedBytes));
+            Interlocked.Exchange(ref _reservedBytes, nextReservedBytes);
             if (!newRegion.TryAllocate(requiredPages, alignmentPages, out var newStartPage, out var newOrder))
                 throw new InvalidOperationException("A newly created data-lake region could not satisfy its initial allocation.");
 
@@ -104,9 +105,10 @@ public sealed unsafe class DataLake : IDisposable
     private DataLakeAllocation CreateAllocation(DataLakeRegion region, int startPage, int order)
     {
         var byteCount = region.GetBlockByteCount(order);
+        var nextAllocatedBytes = checked(AllocatedBytes + checked((long)byteCount));
         var pointer = region.GetPointer(startPage);
         NativeMemory.Clear(pointer, byteCount);
-        Interlocked.Add(ref _allocatedBytes, checked((long)byteCount));
+        Interlocked.Exchange(ref _allocatedBytes, nextAllocatedBytes);
         return new DataLakeAllocation(region, startPage, order, pointer, byteCount);
     }
 
@@ -116,8 +118,11 @@ public sealed unsafe class DataLake : IDisposable
 
         lock (_allocationGate)
         {
+            var nextAllocatedBytes = checked(AllocatedBytes - checked((long)allocation.ByteCount));
+            if (nextAllocatedBytes < 0)
+                throw new InvalidOperationException("Data-lake allocation accounting cannot become negative.");
             allocation.Region.Free(allocation.StartPage, allocation.Order);
-            Interlocked.Add(ref _allocatedBytes, -checked((long)allocation.ByteCount));
+            Interlocked.Exchange(ref _allocatedBytes, nextAllocatedBytes);
 
             if (IsDisposed && AllocatedBytes == 0)
                 ReleaseRegions();
