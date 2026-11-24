@@ -790,6 +790,38 @@ public sealed class DataShelfTests
         Assert.True(warehouse.Lake.RegionCount > 1);
     }
 
+    [Theory]
+    [InlineData(1, 24)]
+    [InlineData(64, 528)]
+    [InlineData(65, 552)]
+    [InlineData(129, 1080)]
+    public void MemoryFootprintDiagnostics_ReportPayloadAndSidecarArrayBytes(int capacity, long expectedMetadataBytes)
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<int>(capacity);
+
+        Assert.Equal((long)capacity * sizeof(int), shelf.PayloadBytes);
+        Assert.Equal(expectedMetadataBytes, shelf.MetadataBytes);
+        Assert.Equal(shelf.AllocatedBytes, warehouse.Lake.AllocatedBytes);
+    }
+
+    [Fact]
+    public void MemoryFootprintDiagnostics_TrackCapacityGrowth()
+    {
+        using var warehouse = new DataWarehouse(4096, 16384);
+        using var shelf = warehouse.CreateShelf<int>(65);
+
+        var initialPayloadBytes = shelf.PayloadBytes;
+        var initialMetadataBytes = shelf.MetadataBytes;
+
+        shelf.EnsureCapacity(129);
+
+        Assert.Equal(129L * sizeof(int), shelf.PayloadBytes);
+        Assert.Equal(1080, shelf.MetadataBytes);
+        Assert.True(shelf.PayloadBytes > initialPayloadBytes);
+        Assert.True(shelf.MetadataBytes > initialMetadataBytes);
+    }
+
     private static long SetAndRead(DataShelf<Record> shelf, DataHandle handle, long value)
     {
         shelf.GetRef(handle).Id = value;
