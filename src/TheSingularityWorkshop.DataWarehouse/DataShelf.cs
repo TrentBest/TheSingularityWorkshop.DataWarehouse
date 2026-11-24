@@ -36,6 +36,15 @@ public sealed unsafe class DataShelf<T> : IDisposable where T : unmanaged
     public int PageSize { get; }
     /// <summary>Size of one unmanaged record, in bytes.</summary>
     public int ElementSize => sizeof(T);
+    /// <summary>Logical payload bytes represented by the current capacity, excluding buddy-block rounding.</summary>
+    public long PayloadBytes => checked((long)Capacity * sizeof(T));
+    /// <summary>
+    /// Bytes occupied by the elements of the managed free-slot, generation, alive, and dirty arrays.
+    /// Excludes CLR array/object headers and allocator metadata.
+    /// </summary>
+    public long MetadataBytes => checked(
+        ((long)_freeSlots.Length + _generations.Length) * sizeof(int) +
+        (long)(_alive.Length + _dirty.Length) * sizeof(ulong));
     /// <summary>Number of currently allocated live slots.</summary>
     public int AliveCount { get; private set; }
     /// <summary>Number of live slots currently marked dirty.</summary>
