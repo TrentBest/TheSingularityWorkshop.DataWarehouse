@@ -17,6 +17,8 @@
 - The shelf identity used to reject handles from other shelves.
 - A public `BaseAddress` diagnostic property returning the current allocation address as `nint`. It is an unsafe escape hatch, not a supported record-access API.
 - `AllocatedBytes`, the current buddy-block extent. It remains the last extent value after disposal as a size diagnostic.
+- `PayloadBytes`, the logical `Capacity × sizeof(T)` payload size, excluding buddy-block rounding.
+- `MetadataBytes`, the element storage occupied by the free-slot and generation arrays plus the alive and dirty bitmap arrays. It excludes CLR array/object headers and lake allocator metadata.
 
 The bitmaps and generation/free metadata are external to stored `T` payloads. The shelf does not allocate a managed object for every record.
 
@@ -75,7 +77,7 @@ Growth can temporarily require both old and new blocks to be available. If the l
 - Reuse increments the slot generation, so the old handle no longer validates.
 - `GetRef` marks a slot dirty when the ref is requested. The shelf cannot observe subsequent writes through the returned ref.
 - `BaseAddress` returns zero after disposal. Any previously copied pointer remains unsafe and must not be used.
-- `AllocatedBytes` reports the last block extent, not live lake usage after disposal. Use `DataLake.AllocatedBytes` for current active shelf-allocation bytes.
+- `AllocatedBytes` reports the last block extent, not live lake usage after disposal. Use `DataLake.AllocatedBytes` for current active shelf-allocation bytes. `PayloadBytes` and `MetadataBytes` remain capacity-based diagnostics; the latter counts managed array element storage, not CLR object headers or allocator metadata.
 
 ## 05 Concurrency and worker ownership
 
